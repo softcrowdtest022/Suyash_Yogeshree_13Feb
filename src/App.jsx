@@ -11,6 +11,7 @@ import CompanyMaster from './pages/Master/CompanyMaster/CompanyMaster'
 import CostingMaster from './pages/master/costingmaster/CostingMaster'
 import DimentionMaster from './pages/master/dimentionmaster/DimentionMaster'
 import OperationMaster from './pages/master/operationmaster/OperationMaster'
+import ProcessMaster from './pages/master/processmaster/ProcessMaster'
 import QuotationMaster from './pages/master/quotationmaster/QuotationMaster'
 import TaxMaster from './pages/master/taxmaster/TaxMaster'
 import TermsAndConditionMaster from './pages/master/termsandconditionmaster/TermsAndConditionMaster'
@@ -57,6 +58,7 @@ const App = () => {
           <Route path="master/costingmaster" element={<CostingMaster />} />
           <Route path="master/dimentionmaster" element={<DimentionMaster />} />
           <Route path="master/operationmaster" element={<OperationMaster />} />
+          <Route path="master/processmaster" element={<ProcessMaster />} />
           <Route path="master/quotationmaster" element={<QuotationMaster />} />
           <Route path="master/taxmaster" element={<TaxMaster />} />
           <Route path="master/termsandconditionmaster" element={<TermsAndConditionMaster />} />

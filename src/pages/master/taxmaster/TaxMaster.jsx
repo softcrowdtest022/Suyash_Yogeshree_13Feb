@@ -40,7 +40,8 @@ import {
   Sort as SortIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  Percent as PercentIcon
+  Percent as PercentIcon,
+  CalendarToday as CalendarIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
@@ -223,7 +224,7 @@ const TaxMaster = () => {
     setSearchTerm(value);
     
     const filtered = taxes.filter(tax =>
-      tax.HSNCode.toLowerCase().includes(value) ||
+      (tax.HSNCode && tax.HSNCode.toLowerCase().includes(value)) ||
       (tax.Description && tax.Description.toLowerCase().includes(value))
     );
     
@@ -267,8 +268,9 @@ const TaxMaster = () => {
   
   // Handle add tax
   const handleAddTax = (newTax) => {
-    setTaxes([...taxes, newTax]);
-    setFilteredTaxes([...filteredTaxes, newTax]);
+    const updatedTaxes = [newTax, ...taxes];
+    setTaxes(updatedTaxes);
+    setFilteredTaxes(updatedTaxes);
     showNotification('Tax added successfully!', 'success');
   };
   
@@ -340,6 +342,7 @@ const TaxMaster = () => {
   
   // Format date
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -384,24 +387,25 @@ const TaxMaster = () => {
     );
   };
   
-  // Calculate CGST and SGST percentages
-  const calculateTaxPercentages = (gstPercentage) => {
-    const half = gstPercentage / 2;
-    return {
-      cgst: half,
-      sgst: half,
-      igst: gstPercentage
-    };
-  };
-  
   // Get tax badge color based on percentage
   const getTaxBadgeColor = (percentage) => {
+    if (percentage === 0) return 'default';
     if (percentage <= 5) return 'success';
     if (percentage <= 12) return 'info';
     if (percentage <= 18) return 'warning';
     return 'error';
   };
   
+  // Calculate tax percentages if needed
+  const getTaxDisplayValues = (tax) => {
+    return {
+      cgst: tax.CGSTPercentage || 0,
+      sgst: tax.SGSTPercentage || 0,
+      igst: tax.IGSTPercentage || tax.GSTPercentage || 0,
+      gst: tax.GSTPercentage || 0
+    };
+  };
+
   // Paginated taxes
   const paginatedTaxes = filteredTaxes.slice(
     page * rowsPerPage,
@@ -495,26 +499,6 @@ const TaxMaster = () => {
             >
               Filter
             </Button>
-            <Button
-              variant="outlined"
-              startIcon={<SortIcon />}
-              sx={{ 
-                height: 40,
-                borderRadius: 1.5,
-                borderColor: '#cbd5e1',
-                color: '#475569',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                textTransform: 'none',
-                '&:hover': {
-                  borderColor: PRIMARY_BLUE,
-                  bgcolor: alpha(PRIMARY_BLUE, 0.04)
-                }
-              }}
-              disabled={loading}
-            >
-              Sort
-            </Button>
           </Stack>
 
           {/* Action Buttons */}
@@ -537,26 +521,6 @@ const TaxMaster = () => {
                 Delete ({selected.length})
               </Button>
             )}
-            <Button
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              sx={{ 
-                height: 40,
-                borderRadius: 1.5,
-                borderColor: '#cbd5e1',
-                color: '#475569',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                textTransform: 'none',
-                '&:hover': {
-                  borderColor: PRIMARY_BLUE,
-                  bgcolor: alpha(PRIMARY_BLUE, 0.04)
-                }
-              }}
-              disabled={loading}
-            >
-              Export
-            </Button>
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -625,10 +589,15 @@ const TaxMaster = () => {
                   py: 2,
                   color: TEXT_COLOR_HEADER
                 }}>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                    HSN Code
-                    <ArrowUpwardIcon sx={{ fontSize: 14, color: TEXT_COLOR_HEADER, opacity: 0.9 }} />
-                  </Stack>
+                  HSN Code
+                </TableCell>
+                <TableCell sx={{ 
+                  fontWeight: 700, 
+                  fontSize: '0.875rem',
+                  py: 2,
+                  color: TEXT_COLOR_HEADER
+                }}>
+                  Description
                 </TableCell>
                 <TableCell sx={{ 
                   fontWeight: 700, 
@@ -674,6 +643,14 @@ const TaxMaster = () => {
                   fontWeight: 700, 
                   fontSize: '0.875rem',
                   py: 2,
+                  color: TEXT_COLOR_HEADER
+                }}>
+                  Created Date
+                </TableCell>
+                <TableCell sx={{ 
+                  fontWeight: 700, 
+                  fontSize: '0.875rem',
+                  py: 2,
                   width: 100,
                   color: TEXT_COLOR_HEADER
                 }} align="center">
@@ -684,7 +661,7 @@ const TaxMaster = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={10} align="center" sx={{ py: 8 }}>
                     <Typography color="textSecondary" sx={{ fontStyle: 'italic' }}>
                       Loading taxes...
                     </Typography>
@@ -692,7 +669,7 @@ const TaxMaster = () => {
                 </TableRow>
               ) : paginatedTaxes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 8 }}>
+                  <TableCell colSpan={10} align="center" sx={{ py: 8 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="body1" color="#64748B" fontWeight={500}>
                         {searchTerm ? 'No taxes found' : 'No taxes available'}
@@ -709,7 +686,7 @@ const TaxMaster = () => {
                   const isOddRow = index % 2 === 0;
                   const isActionMenuOpen = Boolean(actionMenuAnchor) && 
                     selectedTaxForAction?._id === tax._id;
-                  const taxPercentages = calculateTaxPercentages(tax.GSTPercentage);
+                  const taxValues = getTaxDisplayValues(tax);
 
                   return (
                     <TableRow
@@ -743,18 +720,31 @@ const TaxMaster = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight={600} color={TEXT_COLOR_MAIN}>
-                          {tax.HSNCode}
+                          {tax.HSNCode || 'N/A'}
                         </Typography>
-                        <Typography variant="caption" color="#64748B">
-                          {tax.Description || 'No description'}
-                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip title={tax.Description || 'No description'}>
+                          <Typography 
+                            variant="body2" 
+                            color="#475569"
+                            sx={{
+                              maxWidth: 200,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {tax.Description || 'No description'}
+                          </Typography>
+                        </Tooltip>
                       </TableCell>
                       <TableCell>
                         <Chip
                           icon={<PercentIcon />}
-                          label={`${tax.GSTPercentage}%`}
+                          label={`${taxValues.gst}%`}
                           size="small"
-                          color={getTaxBadgeColor(tax.GSTPercentage)}
+                          color={getTaxBadgeColor(taxValues.gst)}
                           sx={{
                             fontWeight: 600,
                             '& .MuiChip-icon': {
@@ -765,21 +755,31 @@ const TaxMaster = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="#475569" fontWeight={500}>
-                          {tax.CGSTPercentage || taxPercentages.cgst}%
+                          {taxValues.cgst}%
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="#475569" fontWeight={500}>
-                          {tax.SGSTPercentage || taxPercentages.sgst}%
+                          {taxValues.sgst}%
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="#475569" fontWeight={500}>
-                          {tax.IGSTPercentage || taxPercentages.igst}%
+                          {taxValues.igst}%
                         </Typography>
                       </TableCell>
                       <TableCell>
                         {getStatusChip(tax.IsActive)}
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip title={formatDate(tax.CreatedAt)}>
+                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                            <CalendarIcon sx={{ fontSize: 14, color: '#64748B' }} />
+                            <Typography variant="caption" color="#64748B">
+                              {formatDate(tax.CreatedAt)}
+                            </Typography>
+                          </Stack>
+                        </Tooltip>
                       </TableCell>
                       <TableCell align="center" sx={{ width: 100 }}>
                         <ActionMenu 

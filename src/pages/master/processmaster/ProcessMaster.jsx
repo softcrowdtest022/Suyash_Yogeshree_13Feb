@@ -20,13 +20,13 @@ import {
   Stack,
   alpha,
   Alert,
-  Avatar,
-  Chip,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
-  Divider
+  Divider,
+  Chip,
+  Avatar
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -35,17 +35,25 @@ import {
   Add as AddIcon,
   Delete as DeleteIcon,
   ArrowUpward as ArrowUpwardIcon,
-  Sort as SortIcon,
-  Height as HeightIcon,
-  WidthWide as WidthIcon,
-  Straighten as StraightenIcon,
-  Scale as ScaleIcon,
-  MoreVert as MoreVertIcon,
   Visibility as ViewIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  MoreVert as MoreVertIcon,
+  Sort as SortIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  AttachMoney as MoneyIcon,
+  Factory as FactoryIcon,
+  Schedule as ScheduleIcon,
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
+
+// Import modal components
+import AddProcess from './AddProcess';
+import EditProcess from './EditProcess';
+import ViewProcess from './ViewProcess';
+import DeleteProcess from './DeleteProcess';
 
 // Color constants
 const HEADER_GRADIENT = 'linear-gradient(135deg, #164e63 0%, #00B4D8 50%, #0e7490 100%)';
@@ -56,14 +64,8 @@ const PRIMARY_BLUE = '#00B4D8';
 const TEXT_COLOR_HEADER = '#FFFFFF';
 const TEXT_COLOR_MAIN = '#0f172a';
 
-// Import modal components
-import AddDimensions from './AddDimensions';
-import EditDimensions from './EditDimensions';
-import ViewDimensions from './ViewDimensions';
-import DeleteDimensions from './DeleteDimensions';
-
 // Action Menu Component
-const ActionMenu = ({ dimension, onView, onEdit, onDelete, anchorEl, onClose, onOpen }) => {
+const ActionMenu = ({ process, onView, onEdit, onDelete, anchorEl, onClose, onOpen }) => {
   return (
     <>
       <Tooltip title="Actions">
@@ -96,7 +98,7 @@ const ActionMenu = ({ dimension, onView, onEdit, onDelete, anchorEl, onClose, on
       >
         <MenuItem 
           onClick={() => {
-            onView(dimension);
+            onView(process);
             onClose();
           }}
           sx={{ py: 1 }}
@@ -110,7 +112,7 @@ const ActionMenu = ({ dimension, onView, onEdit, onDelete, anchorEl, onClose, on
         </MenuItem>
         <MenuItem 
           onClick={() => {
-            onEdit(dimension);
+            onEdit(process);
             onClose();
           }}
           sx={{ py: 1 }}
@@ -125,7 +127,7 @@ const ActionMenu = ({ dimension, onView, onEdit, onDelete, anchorEl, onClose, on
         <Divider sx={{ my: 0.5 }} />
         <MenuItem 
           onClick={() => {
-            onDelete(dimension);
+            onDelete(process);
             onClose();
           }}
           sx={{ py: 1 }}
@@ -144,10 +146,10 @@ const ActionMenu = ({ dimension, onView, onEdit, onDelete, anchorEl, onClose, on
   );
 };
 
-const DimensionMaster = () => {
+const ProcessMaster = () => {
   // State for data
-  const [dimensions, setDimensions] = useState([]);
-  const [filteredDimensions, setFilteredDimensions] = useState([]);
+  const [processes, setProcesses] = useState([]);
+  const [filteredProcesses, setFilteredProcesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -158,7 +160,7 @@ const DimensionMaster = () => {
   
   // Menu state for action buttons
   const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
-  const [selectedDimensionForAction, setSelectedDimensionForAction] = useState(null);
+  const [selectedProcessForAction, setSelectedProcessForAction] = useState(null);
   
   // Modal state
   const [openAddModal, setOpenAddModal] = useState(false);
@@ -166,8 +168,8 @@ const DimensionMaster = () => {
   const [openViewModal, setOpenViewModal] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   
-  // Selected dimension
-  const [selectedDimension, setSelectedDimension] = useState(null);
+  // Selected process
+  const [selectedProcess, setSelectedProcess] = useState(null);
   
   // Notification state
   const [snackbar, setSnackbar] = useState({
@@ -184,24 +186,24 @@ const DimensionMaster = () => {
     itemsPerPage: 10
   });
 
-  // Fetch dimensions from API
+  // Fetch processes from API
   useEffect(() => {
-    fetchDimensions();
+    fetchProcesses();
   }, []);
 
-  const fetchDimensions = async () => {
+  const fetchProcesses = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${BASE_URL}/api/dimension-weights`, {
+      const response = await axios.get(`${BASE_URL}/api/processes`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
       if (response.data.success) {
-        setDimensions(response.data.data || []);
-        setFilteredDimensions(response.data.data || []);
+        setProcesses(response.data.data || []);
+        setFilteredProcesses(response.data.data || []);
         setPagination(response.data.pagination || {
           currentPage: 1,
           totalPages: 1,
@@ -209,11 +211,11 @@ const DimensionMaster = () => {
           itemsPerPage: 10
         });
       } else {
-        showNotification('Failed to load dimension weights', 'error');
+        showNotification('Failed to load processes', 'error');
       }
     } catch (err) {
-      console.error('Error fetching dimension weights:', err);
-      showNotification('Failed to load dimension weights. Please try again.', 'error');
+      console.error('Error fetching processes:', err);
+      showNotification('Failed to load processes. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -224,23 +226,22 @@ const DimensionMaster = () => {
     const value = event.target.value.toLowerCase();
     setSearchTerm(value);
     
-    const filtered = dimensions.filter(dimension =>
-      dimension.PartNo.toLowerCase().includes(value) ||
-      (dimension.Item?.PartName?.toLowerCase() || '').includes(value) ||
-      dimension.WeightInKG.toString().includes(value) ||
-      dimension.Thickness.toString().includes(value) ||
-      dimension.Width.toString().includes(value) ||
-      dimension.Length.toString().includes(value)
+    const filtered = processes.filter(process =>
+      process.ProcessName.toLowerCase().includes(value) ||
+      process.RateType.toLowerCase().includes(value) ||
+      process.VendorOrInhouse.toLowerCase().includes(value) ||
+      (process.Description && process.Description.toLowerCase().includes(value)) ||
+      process.Rate.toString().includes(value)
     );
     
-    setFilteredDimensions(filtered);
+    setFilteredProcesses(filtered);
     setPage(0);
   };
   
   // Handle select all
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelected(filteredDimensions.map(dimension => dimension._id));
+      setSelected(filteredProcesses.map(process => process._id));
     } else {
       setSelected([]);
     }
@@ -271,31 +272,31 @@ const DimensionMaster = () => {
     setPage(0);
   };
   
-  // Handle add dimension
-  const handleAddDimension = (newDimension) => {
-    setDimensions([...dimensions, newDimension]);
-    setFilteredDimensions([...filteredDimensions, newDimension]);
-    showNotification('Dimension weight added successfully!', 'success');
+  // Handle add process
+  const handleAddProcess = (newProcess) => {
+    setProcesses([...processes, newProcess]);
+    setFilteredProcesses([...filteredProcesses, newProcess]);
+    showNotification('Process added successfully!', 'success');
   };
   
-  // Handle edit dimension
-  const handleEditDimension = (updatedDimension) => {
-    const updatedDimensions = dimensions.map(dimension =>
-      dimension._id === updatedDimension._id ? updatedDimension : dimension
+  // Handle edit process
+  const handleEditProcess = (updatedProcess) => {
+    const updatedProcesses = processes.map(process =>
+      process._id === updatedProcess._id ? updatedProcess : process
     );
     
-    setDimensions(updatedDimensions);
-    setFilteredDimensions(updatedDimensions);
-    showNotification('Dimension weight updated successfully!', 'success');
+    setProcesses(updatedProcesses);
+    setFilteredProcesses(updatedProcesses);
+    showNotification('Process updated successfully!', 'success');
   };
   
-  // Handle delete dimension
-  const handleDeleteDimension = (dimensionId) => {
-    const updatedDimensions = dimensions.filter(dimension => dimension._id !== dimensionId);
-    setDimensions(updatedDimensions);
-    setFilteredDimensions(updatedDimensions);
-    setSelected(selected.filter(id => id !== dimensionId));
-    showNotification('Dimension weight deleted successfully!', 'success');
+  // Handle delete process
+  const handleDeleteProcess = (processId) => {
+    const updatedProcesses = processes.filter(process => process._id !== processId);
+    setProcesses(updatedProcesses);
+    setFilteredProcesses(updatedProcesses);
+    setSelected(selected.filter(id => id !== processId));
+    showNotification('Process deleted successfully!', 'success');
   };
   
   // Handle bulk delete
@@ -304,33 +305,33 @@ const DimensionMaster = () => {
   };
   
   // Action menu handlers
-  const handleActionMenuOpen = (event, dimension) => {
+  const handleActionMenuOpen = (event, process) => {
     setActionMenuAnchor(event.currentTarget);
-    setSelectedDimensionForAction(dimension);
+    setSelectedProcessForAction(process);
   };
 
   const handleActionMenuClose = () => {
     setActionMenuAnchor(null);
-    setSelectedDimensionForAction(null);
+    setSelectedProcessForAction(null);
   };
 
   // Open edit modal
-  const openEditDimensionModal = (dimension) => {
-    setSelectedDimension(dimension);
+  const openEditProcessModal = (process) => {
+    setSelectedProcess(process);
     setOpenEditModal(true);
     handleActionMenuClose();
   };
   
   // Open view modal
-  const openViewDimensionModal = (dimension) => {
-    setSelectedDimension(dimension);
+  const openViewProcessModal = (process) => {
+    setSelectedProcess(process);
     setOpenViewModal(true);
     handleActionMenuClose();
   };
   
   // Open delete confirmation
-  const openDeleteDimensionDialog = (dimension) => {
-    setSelectedDimension(dimension);
+  const openDeleteProcessDialog = (process) => {
+    setSelectedProcess(process);
     setOpenDeleteDialog(true);
     handleActionMenuClose();
   };
@@ -353,14 +354,117 @@ const DimensionMaster = () => {
     });
   };
   
-  // Get part initials for avatar
-  const getPartInitials = (partNo) => {
-    if (!partNo) return 'PN';
-    return partNo.substring(0, 2).toUpperCase();
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(amount);
   };
   
-  // Paginated dimensions
-  const paginatedDimensions = filteredDimensions.slice(
+  // Get process initials for avatar
+  const getProcessInitials = (processName) => {
+    if (!processName) return 'P';
+    
+    const words = processName.split(' ');
+    if (words.length >= 2) {
+      return `${words[0].charAt(0)}${words[1].charAt(0)}`.toUpperCase();
+    }
+    
+    return processName.substring(0, 2).toUpperCase();
+  };
+  
+  // Active status chip
+  const getStatusChip = (isActive) => {
+    return isActive ? (
+      <Chip
+        icon={<CheckCircleIcon />}
+        label="Active"
+        size="small"
+        sx={{
+          bgcolor: '#dcfce7',
+          color: '#166534',
+          border: '1px solid #86efac',
+          fontWeight: 500,
+          '& .MuiChip-icon': {
+            color: '#166534',
+            fontSize: 14
+          }
+        }}
+      />
+    ) : (
+      <Chip
+        icon={<CancelIcon />}
+        label="Inactive"
+        size="small"
+        sx={{
+          bgcolor: '#fee2e2',
+          color: '#991b1b',
+          border: '1px solid #fca5a5',
+          fontWeight: 500,
+          '& .MuiChip-icon': {
+            color: '#991b1b',
+            fontSize: 14
+          }
+        }}
+      />
+    );
+  };
+  
+  // Get vendor/inhouse chip color
+  const getVendorInhouseChip = (type) => {
+    const isVendor = type === 'Vendor';
+    return (
+      <Chip
+        label={type}
+        size="small"
+        icon={isVendor ? <BusinessIcon /> : <FactoryIcon />}
+        sx={{
+          bgcolor: isVendor ? '#FEF3C7' : '#DBEAFE',
+          color: isVendor ? '#92400E' : '#1E40AF',
+          border: '1px solid',
+          borderColor: isVendor ? '#FCD34D' : '#93C5FD',
+          fontWeight: 500,
+          '& .MuiChip-icon': {
+            color: isVendor ? '#92400E' : '#1E40AF',
+            fontSize: 14
+          }
+        }}
+      />
+    );
+  };
+  
+  // Get rate type chip color
+  const getRateTypeChip = (rateType) => {
+    const colors = {
+      'Per Nos': { bg: '#F3E8FF', color: '#7C3AED', border: '#D8B4FE' },
+      'Per Kg': { bg: '#DCFCE7', color: '#059669', border: '#86EFAC' },
+      'Per Hour': { bg: '#F0F9FF', color: '#0C4A6E', border: '#BAE6FD' },
+      'Fixed': { bg: '#FEF3C7', color: '#92400E', border: '#FCD34D' }
+    };
+    
+    const color = colors[rateType] || { bg: '#F5F5F5', color: '#616161', border: '#E0E0E0' };
+    
+    return (
+      <Chip
+        label={rateType}
+        size="small"
+        sx={{
+          bgcolor: color.bg,
+          color: color.color,
+          border: '1px solid',
+          borderColor: color.border,
+          fontWeight: 500,
+          fontSize: '0.75rem'
+        }}
+      />
+    );
+  };
+  
+  // Paginated processes
+  const paginatedProcesses = filteredProcesses.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
@@ -382,10 +486,10 @@ const DimensionMaster = () => {
             display: 'inline-block'
           }}
         >
-          Dimension Weight Master
+          Process Master
         </Typography>
         <Typography variant="body2" color="#64748B" sx={{ mt: 0.5 }}>
-          Manage and calculate material weights based on dimensions and density
+          Manage manufacturing processes, rates, and vendor information
         </Typography>
       </Box>
 
@@ -402,7 +506,7 @@ const DimensionMaster = () => {
           {/* Search and Filters */}
           <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
             <TextField
-              placeholder="Search by Part No, Item name, or dimensions..."
+              placeholder="Search by process name, rate type, or vendor..."
               size="small"
               value={searchTerm}
               onChange={handleSearch}
@@ -532,13 +636,13 @@ const DimensionMaster = () => {
               }}
               disabled={loading}
             >
-              Add Dimension Weight
+              Add Process
             </Button>
           </Stack>
         </Stack>
       </Paper>
 
-      {/* Dimensions Table */}
+      {/* Processes Table */}
       <Paper sx={{ 
         width: '100%', 
         borderRadius: 2, 
@@ -558,8 +662,8 @@ const DimensionMaster = () => {
               }}>
                 <TableCell padding="checkbox" sx={{ width: 60 }}>
                   <Checkbox
-                    indeterminate={selected.length > 0 && selected.length < filteredDimensions.length}
-                    checked={filteredDimensions.length > 0 && selected.length === filteredDimensions.length}
+                    indeterminate={selected.length > 0 && selected.length < filteredProcesses.length}
+                    checked={filteredProcesses.length > 0 && selected.length === filteredProcesses.length}
                     onChange={handleSelectAll}
                     sx={{
                       color: TEXT_COLOR_HEADER,
@@ -583,7 +687,7 @@ const DimensionMaster = () => {
                   color: TEXT_COLOR_HEADER
                 }}>
                   <Stack direction="row" alignItems="center" spacing={0.5}>
-                    Part & Item Details
+                    Process Details
                     <ArrowUpwardIcon sx={{ fontSize: 14, color: TEXT_COLOR_HEADER, opacity: 0.9 }} />
                   </Stack>
                 </TableCell>
@@ -593,7 +697,7 @@ const DimensionMaster = () => {
                   py: 2,
                   color: TEXT_COLOR_HEADER
                 }}>
-                  Dimensions
+                  Rate Information
                 </TableCell>
                 <TableCell sx={{ 
                   fontWeight: 700, 
@@ -601,7 +705,7 @@ const DimensionMaster = () => {
                   py: 2,
                   color: TEXT_COLOR_HEADER
                 }}>
-                  Material & Weight
+                  Vendor/Inhouse
                 </TableCell>
                 <TableCell sx={{ 
                   fontWeight: 700, 
@@ -609,7 +713,7 @@ const DimensionMaster = () => {
                   py: 2,
                   color: TEXT_COLOR_HEADER
                 }}>
-                  Created
+                  Status
                 </TableCell>
                 <TableCell sx={{ 
                   fontWeight: 700, 
@@ -627,33 +731,33 @@ const DimensionMaster = () => {
                 <TableRow>
                   <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
                     <Typography color="textSecondary" sx={{ fontStyle: 'italic' }}>
-                      Loading dimension weights...
+                      Loading processes...
                     </Typography>
                   </TableCell>
                 </TableRow>
-              ) : paginatedDimensions.length === 0 ? (
+              ) : paginatedProcesses.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="body1" color="#64748B" fontWeight={500}>
-                        {searchTerm ? 'No dimension weights found' : 'No dimension weights available'}
+                        {searchTerm ? 'No processes found' : 'No processes available'}
                       </Typography>
                       <Typography variant="body2" color="#94A3B8" sx={{ mt: 1 }}>
-                        {searchTerm ? 'Try adjusting your search terms' : 'Add your first dimension weight to get started'}
+                        {searchTerm ? 'Try adjusting your search terms' : 'Add your first process to get started'}
                       </Typography>
                     </Box>
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedDimensions.map((dimension, index) => {
-                  const isSelected = selected.includes(dimension._id);
+                paginatedProcesses.map((process, index) => {
+                  const isSelected = selected.includes(process._id);
                   const isOddRow = index % 2 === 0;
                   const isActionMenuOpen = Boolean(actionMenuAnchor) && 
-                    selectedDimensionForAction?._id === dimension._id;
+                    selectedProcessForAction?._id === process._id;
 
                   return (
                     <TableRow
-                      key={dimension._id}
+                      key={process._id}
                       hover
                       selected={isSelected}
                       sx={{ 
@@ -672,7 +776,7 @@ const DimensionMaster = () => {
                       <TableCell padding="checkbox" sx={{ width: 60 }}>
                         <Checkbox
                           checked={isSelected}
-                          onChange={() => handleSelect(dimension._id)}
+                          onChange={() => handleSelect(process._id)}
                           sx={{
                             color: PRIMARY_BLUE,
                             '&.Mui-checked': {
@@ -690,100 +794,59 @@ const DimensionMaster = () => {
                             fontSize: '0.875rem',
                             fontWeight: 500
                           }}>
-                            {getPartInitials(dimension.PartNo)}
+                            {getProcessInitials(process.ProcessName)}
                           </Avatar>
                           <Box>
                             <Typography variant="body2" fontWeight={600} color={TEXT_COLOR_MAIN}>
-                              {dimension.PartNo}
+                              {process.ProcessName}
                             </Typography>
-                            {dimension.Item ? (
-                              <>
-                                <Typography variant="caption" color="#64748B" display="block">
-                                  {dimension.Item.PartName}
-                                </Typography>
-                                <Typography variant="caption" color="#64748B" display="block">
-                                  Drawing: {dimension.Item.DrawingNo} Rev: {dimension.Item.RevisionNo}
-                                </Typography>
-                              </>
-                            ) : (
-                              <Typography variant="caption" color="#64748B" display="block">
-                                No associated item
-                              </Typography>
-                            )}
+                            <Typography variant="caption" color="#64748B" display="block">
+                              {process.Description || 'No description available'}
+                            </Typography>
+                            <Typography variant="caption" color="#64748B" display="block">
+                              Created: {formatDate(process.CreatedAt)}
+                            </Typography>
                           </Box>
                         </Stack>
                       </TableCell>
                       <TableCell>
                         <Stack spacing={0.5}>
                           <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <HeightIcon fontSize="small" sx={{ color: '#4F46E5' }} />
-                            <Typography variant="body2" color="#475569">
-                              Thickness: <strong>{dimension.Thickness} mm</strong>
-                            </Typography>
-                          </Stack>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <WidthIcon fontSize="small" sx={{ color: '#10B981' }} />
-                            <Typography variant="body2" color="#475569">
-                              Width: <strong>{dimension.Width} mm</strong>
-                            </Typography>
-                          </Stack>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <StraightenIcon fontSize="small" sx={{ color: '#F59E0B' }} />
-                            <Typography variant="body2" color="#475569">
-                              Length: <strong>{dimension.Length} mm</strong>
-                            </Typography>
-                          </Stack>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        <Stack spacing={0.5}>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <ScaleIcon fontSize="small" sx={{ color: '#EF4444' }} />
-                            <Typography variant="body2" color="#475569">
-                              Density: <strong>{dimension.Density} g/cm³</strong>
-                            </Typography>
-                          </Stack>
-                          <Stack direction="row" alignItems="center" spacing={0.5}>
-                            <ScaleIcon fontSize="small" sx={{ color: '#059669' }} />
+                            <MoneyIcon fontSize="small" sx={{ color: '#059669' }} />
                             <Typography variant="body2" fontWeight={600} color="#059669">
-                              {dimension.WeightInKG} kg
+                              {formatCurrency(process.Rate)}
                             </Typography>
-                            <Chip
-                              label={`Weight`}
-                              size="small"
-                              sx={{
-                                bgcolor: '#f0fdf4',
-                                color: '#059669',
-                                border: '1px solid #86efac',
-                                fontWeight: 500,
-                                fontSize: '0.625rem'
-                              }}
-                            />
                           </Stack>
-                          {dimension.Item?.MaterialID && (
-                            <Typography variant="caption" color="#64748B">
-                              Material: {dimension.Item.MaterialID.MaterialName}
-                            </Typography>
-                          )}
+                          <Stack direction="row" alignItems="center" spacing={0.5}>
+                            <ScheduleIcon fontSize="small" sx={{ color: '#3B82F6' }} />
+                            {getRateTypeChip(process.RateType)}
+                          </Stack>
+                          <Typography variant="caption" color="#64748B">
+                            Rate applied per {process.RateType.toLowerCase().replace('per ', '')}
+                          </Typography>
                         </Stack>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" color="#475569">
-                          {formatDate(dimension.CreatedAt)}
+                        {getVendorInhouseChip(process.VendorOrInhouse)}
+                        <Typography variant="caption" color="#64748B" display="block" sx={{ mt: 0.5 }}>
+                          {process.VendorOrInhouse === 'Vendor' ? 'External vendor process' : 'In-house manufacturing'}
                         </Typography>
-                        <Typography variant="caption" color="#64748B" display="block">
-                          Updated: {formatDate(dimension.UpdatedAt)}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusChip(process.IsActive)}
+                        <Typography variant="caption" color="#64748B" display="block" sx={{ mt: 0.5 }}>
+                          Updated: {formatDate(process.UpdatedAt)}
                         </Typography>
                       </TableCell>
                       <TableCell align="center" sx={{ width: 100 }}>
                         <ActionMenu 
-                          dimension={dimension}
-                          onView={openViewDimensionModal}
-                          onEdit={openEditDimensionModal}
-                          onDelete={openDeleteDimensionDialog}
+                          process={process}
+                          onView={openViewProcessModal}
+                          onEdit={openEditProcessModal}
+                          onDelete={openDeleteProcessDialog}
                           anchorEl={isActionMenuOpen ? actionMenuAnchor : null}
                           onClose={handleActionMenuClose}
-                          onOpen={(e) => handleActionMenuOpen(e, dimension)}
+                          onOpen={(e) => handleActionMenuOpen(e, process)}
                         />
                       </TableCell>
                     </TableRow>
@@ -798,7 +861,7 @@ const DimensionMaster = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={filteredDimensions.length}
+          count={filteredProcesses.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -817,45 +880,45 @@ const DimensionMaster = () => {
       </Paper>
 
       {/* Separate Modal Components */}
-      <AddDimensions 
+      <AddProcess 
         open={openAddModal}
         onClose={() => setOpenAddModal(false)}
-        onAdd={handleAddDimension}
+        onAdd={handleAddProcess}
       />
 
-      {selectedDimension && (
+      {selectedProcess && (
         <>
-          <EditDimensions 
+          <EditProcess 
             open={openEditModal}
             onClose={() => {
               setOpenEditModal(false);
-              setSelectedDimension(null);
+              setSelectedProcess(null);
             }}
-            dimension={selectedDimension}
-            onUpdate={handleEditDimension}
+            process={selectedProcess}
+            onUpdate={handleEditProcess}
           />
 
-          <ViewDimensions 
+          <ViewProcess 
             open={openViewModal}
             onClose={() => {
               setOpenViewModal(false);
-              setSelectedDimension(null);
+              setSelectedProcess(null);
             }}
-            dimension={selectedDimension}
+            process={selectedProcess}
             onEdit={() => {
               setOpenViewModal(false);
               setOpenEditModal(true);
             }}
           />
 
-          <DeleteDimensions 
+          <DeleteProcess 
             open={openDeleteDialog}
             onClose={() => {
               setOpenDeleteDialog(false);
-              setSelectedDimension(null);
+              setSelectedProcess(null);
             }}
-            dimension={selectedDimension}
-            onDelete={handleDeleteDimension}
+            process={selectedProcess}
+            onDelete={handleDeleteProcess}
           />
         </>
       )}
@@ -884,4 +947,4 @@ const DimensionMaster = () => {
   );
 };
 
-export default DimensionMaster;
+export default ProcessMaster;

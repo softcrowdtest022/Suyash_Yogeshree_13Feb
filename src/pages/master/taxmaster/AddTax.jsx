@@ -11,7 +11,11 @@ import {
   FormControlLabel,
   Checkbox,
   Grid,
-  Box
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import axios from 'axios';
@@ -21,6 +25,7 @@ const AddTax = ({ open, onClose, onAdd }) => {
   const [formData, setFormData] = useState({
     HSNCode: '',
     GSTPercentage: '',
+    GSTType: 'CGST/SGST', // Default value
     Description: '',
     IsActive: true
   });
@@ -32,6 +37,14 @@ const AddTax = ({ open, onClose, onAdd }) => {
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSelectChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
     }));
   };
 
@@ -50,6 +63,11 @@ const AddTax = ({ open, onClose, onAdd }) => {
     const gstPercentage = parseFloat(formData.GSTPercentage);
     if (isNaN(gstPercentage) || gstPercentage < 0 || gstPercentage > 100) {
       setError('GST Percentage must be a number between 0 and 100');
+      return;
+    }
+
+    if (!formData.GSTType.trim()) {
+      setError('GST Type is required');
       return;
     }
 
@@ -87,6 +105,7 @@ const AddTax = ({ open, onClose, onAdd }) => {
     setFormData({
       HSNCode: '',
       GSTPercentage: '',
+      GSTType: 'CGST/SGST', // Reset to default
       Description: '',
       IsActive: true
     });
@@ -200,6 +219,30 @@ const AddTax = ({ open, onClose, onAdd }) => {
                     }
                   }}
                 />
+              </Grid>
+            </Grid>
+
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <FormControl fullWidth size="medium" disabled={loading}>
+                  <InputLabel id="gst-type-label">GST Type *</InputLabel>
+                  <Select
+                    labelId="gst-type-label"
+                    id="gst-type-select"
+                    name="GSTType"
+                    value={formData.GSTType}
+                    label="GST Type *"
+                    onChange={handleSelectChange}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 1,
+                      }
+                    }}
+                  >
+                    <MenuItem value="CGST/SGST">CGST/SGST</MenuItem>
+                    <MenuItem value="IGST">IGST</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
 
