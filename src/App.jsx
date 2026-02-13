@@ -4,7 +4,7 @@ import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Users from './pages/Users'
 import Quotation from './pages/Quotation/Quotation'
-import CustomerMaster from './pages/Master/CustomerMaster/CustomerMaster'
+// import CustomerMaster from './pages/Master/CustomerMaster/CustomerMaster'
 import ItemMaster from './pages/Master/ItemMaster/ItemMaster'
 import MaterialMaster from './pages/Master/MaterialMaster/MaterialMaster'
 import CompanyMaster from './pages/Master/CompanyMaster/CompanyMaster'
@@ -23,14 +23,22 @@ import DesignationMaster from './pages/hrmaster/designationmaster/DesignationMas
 import EmployeeMaster from './pages/hrmaster/employeemaster/EmployeeMaster'
 import LeaveTypeMaster from './pages/hrmaster/leavetypemaster/LeaveTypeMaster'
 import RawMaterialMaster from './pages/master/rawmaterialmaster/RawMaterialMaster'
+import VendorMaster from './pages/master/vendormaster/VendorMaster'
+
+import ApplyLeave from './pages/hrmaster/employeeleavemaster/EmployeeLeaveMaster'
+import MyLeaves from './pages/hrmaster/employeeleavemaster/MyLeaves'
+import LeaveApproval from './pages/hrmaster/employeeleavemaster/LEaveApproval'
+import EmployeeLeaveMaster from './pages/hrmaster/employeeleavemaster/EmployeeLeaveMaster'
+import AdminLeaveApproval from './pages/hrmaster/adminleavemaster/AdminLeaveApproval'
+
 
 const PrivateRoute = ({ children }) => {
   const isLoggedIn = localStorage.getItem('isLoggedIn')
-  
+
   if (!isLoggedIn || isLoggedIn !== 'true') {
     return <Navigate to="/login" replace />
   }
-  
+
   return children
 }
 
@@ -41,7 +49,7 @@ const App = () => {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/registration" element={<Registration />} />
-        
+
         {/* Protected Routes with Layout - Flat Structure */}
         <Route path="/" element={
           <PrivateRoute>
@@ -52,12 +60,13 @@ const App = () => {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="users" element={<Users />} />
           <Route path="quotation" element={<Quotation />} />
-          <Route path="master/customermaster" element={<CustomerMaster />} />
+          {/* <Route path="master/customermaster" element={<CustomerMaster />} /> */}
+          <Route path="master/vendormaster" element={<VendorMaster />} />
           <Route path="master/itemmaster" element={<ItemMaster />} />
           <Route path="master/companymaster" element={<CompanyMaster />} />
           <Route path="master/costingmaster" element={<CostingMaster />} />
           <Route path="master/dimentionmaster" element={<DimentionMaster />} />
-          <Route path="master/operationmaster" element={<OperationMaster />} />
+          {/* <Route path="master/operationmaster" element={<OperationMaster />} /> */}
           <Route path="master/processmaster" element={<ProcessMaster />} />
           <Route path="master/quotationmaster" element={<QuotationMaster />} />
           <Route path="master/taxmaster" element={<TaxMaster />} />
@@ -69,8 +78,13 @@ const App = () => {
           <Route path="hrmaster/employeemaster" element={<EmployeeMaster />} />
           <Route path="hrmaster/leavetypemaster" element={<LeaveTypeMaster />} />
           <Route path="roles" element={<Roles />} />
+
+          <Route path='hrmaster/employeeleavemaster' element={<EmployeeLeaveMaster/>} />
+          <Route path='hrmaster/adminleavemaster' element={<AdminLeaveApproval/>} />
+
+
         </Route>
-        
+
         {/* Catch all route - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

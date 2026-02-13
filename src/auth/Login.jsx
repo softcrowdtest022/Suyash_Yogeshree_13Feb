@@ -15,90 +15,96 @@ const Login = () => {
     // Check if user is already logged in
     const token = localStorage.getItem('token');
     const isLoggedIn = localStorage.getItem('isLoggedIn');
-    
+
     if (token && isLoggedIn === 'true') {
       navigate('/');
     }
   }, [navigate]);
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setError('');
-  setSuccess('');
-  setLoading(true);
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
 
-  // Basic validation
-  if (!email.trim() || !password.trim()) {
-    setError('Please enter both email and password.');
-    setLoading(false);
-    return;
-  }
+    // Basic validation
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter both email and password.');
+      setLoading(false);
+      return;
+    }
 
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    setError('Please enter a valid email address.');
-    setLoading(false);
-    return;
-  }
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
 
-  try {
-    const response = await axios.post(`${BASE_URL}/api/auth/login`, {
-      email: email.trim(),
-      password: password.trim()
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
+    try {
+      const response = await axios.post(`${BASE_URL}/api/auth/login`, {
+        email: email.trim(),
+        password: password.trim()
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = response.data;
+
+      if (data.success && data.data && data.data.token) {
+        // Store authentication data in localStorage
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userEmail', data.data.Email);
+        localStorage.setItem('userName', data.data.Username);
+        localStorage.setItem('userRole', data.data.RoleName);
+        localStorage.setItem('userId', data.data._id);
+        localStorage.setItem('userRoleId', data.data.RoleID._id);
+
+        // Store additional user data
+        localStorage.setItem('userData', JSON.stringify(data.data));
+
+        //Store employee data
+        // localStorage.setItem("employeeId", response.data.employee._id);
+        if (response.data.employee?._id) {
+          localStorage.setItem("employeeId", response.data.employee._id);
+        }
+
+        // Set success message
+        setSuccess('Login successful! Redirecting...');
+
+        // Redirect to home page after a brief delay
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
+
+      } else {
+        setError(data.message || 'Invalid response from server. Please try again.');
       }
-    });
+    } catch (err) {
+      console.error('Login error:', err);
 
-    const data = response.data;
-
-    if (data.success && data.data && data.data.token) {
-      // Store authentication data in localStorage
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userEmail', data.data.Email);
-      localStorage.setItem('userName', data.data.Username);
-      localStorage.setItem('userRole', data.data.RoleName);
-      localStorage.setItem('userId', data.data._id);
-      localStorage.setItem('userRoleId', data.data.RoleID._id);
-      
-      // Store additional user data
-      localStorage.setItem('userData', JSON.stringify(data.data));
-      
-      // Set success message
-      setSuccess('Login successful! Redirecting...');
-      
-      // Redirect to home page after a brief delay
-      setTimeout(() => {
-        navigate('/');
-      }, 1000);
-      
-    } else {
-      setError(data.message || 'Invalid response from server. Please try again.');
+      // Handle different types of errors
+      if (err.response) {
+        // Server responded with an error status (4xx, 5xx)
+        const errorMessage = err.response.data?.message ||
+          err.response.data?.error ||
+          'Login failed. Please check your credentials and try again.';
+        setError(errorMessage);
+      } else if (err.request) {
+        // Request was made but no response received
+        setError('No response from server. Please check your network connection.');
+      } else {
+        // Something else happened
+        setError(err.message || 'Login failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error('Login error:', err);
-    
-    // Handle different types of errors
-    if (err.response) {
-      // Server responded with an error status (4xx, 5xx)
-      const errorMessage = err.response.data?.message || 
-                          err.response.data?.error || 
-                          'Login failed. Please check your credentials and try again.';
-      setError(errorMessage);
-    } else if (err.request) {
-      // Request was made but no response received
-      setError('No response from server. Please check your network connection.');
-    } else {
-      // Something else happened
-      setError(err.message || 'Login failed. Please try again.');
-    }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleForgotPassword = () => {
     alert('Password reset functionality will be implemented soon. Please contact system administrator.');
@@ -114,7 +120,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center px-4">
       <div className="w-full max-w-5xl bg-white rounded-2xl flex overflow-hidden shadow-2xl">
-        
+
         {/* Left Column - Login Form */}
         <div className="w-full md:w-1/2 p-10 text-gray-800">
           <h2 className="text-2xl font-semibold mb-2">
@@ -128,7 +134,7 @@ const Login = () => {
           </p>
 
           {/* Google Sign In Button (Optional) */}
-          <button 
+          <button
             type="button"
             className="w-full bg-white text-gray-700 border border-gray-300 rounded-md py-2 flex items-center justify-center gap-2 mb-6 text-sm font-medium hover:bg-gray-50 transition"
             disabled={loading}
@@ -207,7 +213,7 @@ const Login = () => {
             )}
 
             {/* Login Button */}
-            <button 
+            <button
               type="submit"
               disabled={loading}
               className={`w-full ${loading ? 'bg-orange-400' : 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'} transition rounded-md py-2 font-semibold text-sm mb-4 text-white shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
@@ -246,7 +252,7 @@ const Login = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="relative z-10">
                     <div className="w-48 h-32 bg-white/80 backdrop-blur-sm rounded-xl border border-amber-300 p-4 shadow-sm">
                       <div className="flex items-center justify-center gap-2 mb-3">

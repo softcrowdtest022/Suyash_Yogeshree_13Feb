@@ -27,7 +27,7 @@ const EditQuotation = ({ open, onClose, quotation, onUpdate }) => {
     Status: '',
     ValidTill: '',
     InternalRemarks: '',
-    CustomerRemarks: ''
+    VendorRemarks: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,7 +43,7 @@ const EditQuotation = ({ open, onClose, quotation, onUpdate }) => {
         Status: quotation.Status || 'Draft',
         ValidTill: validTillDate,
         InternalRemarks: quotation.InternalRemarks || '',
-        CustomerRemarks: quotation.CustomerRemarks || ''
+        VendorRemarks: quotation.VendorRemarks || ''
       });
     }
   }, [quotation]);
@@ -283,9 +283,9 @@ const EditQuotation = ({ open, onClose, quotation, onUpdate }) => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Customer Remarks"
-                  name="CustomerRemarks"
-                  value={formData.CustomerRemarks}
+                  label="Vendor Remarks"
+                  name="VendorRemarks"
+                  value={formData.VendorRemarks}
                   onChange={handleChange}
                   multiline
                   rows={2}

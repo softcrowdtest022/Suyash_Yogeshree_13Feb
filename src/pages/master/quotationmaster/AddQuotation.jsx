@@ -40,7 +40,7 @@ const AddQuotation = ({ open, onClose, onAdd }) => {
     VendorID: '',
     ValidTill: '',
     InternalRemarks: '',
-    CustomerRemarks: '',
+    VendorRemarks: '',
     Items: []
   });
   
@@ -256,7 +256,7 @@ const AddQuotation = ({ open, onClose, onAdd }) => {
         Quantity: item.Quantity
       })),
       InternalRemarks: formData.InternalRemarks,
-      CustomerRemarks: formData.CustomerRemarks
+      VendorRemarks: formData.VendorRemarks
     };
 
     if (vendorType === 'Existing') {
@@ -296,7 +296,7 @@ const AddQuotation = ({ open, onClose, onAdd }) => {
       VendorID: '',
       ValidTill: '',
       InternalRemarks: '',
-      CustomerRemarks: '',
+      VendorRemarks: '',
       Items: []
     });
     setNewVendor({
@@ -709,13 +709,13 @@ const AddQuotation = ({ open, onClose, onAdd }) => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Customer Remarks"
-                  name="CustomerRemarks"
-                  value={formData.CustomerRemarks}
+                  label="Vendor Remarks"
+                  name="VendorRemarks"
+                  value={formData.VendorRemarks}
                   onChange={handleFormChange}
                   multiline
                   rows={2}
-                  placeholder="Message for the customer..."
+                  placeholder="Message for the vendor..."
                 />
               </Grid>
             </Grid>

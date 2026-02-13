@@ -17,10 +17,10 @@ import { Add as AddIcon } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
 
-const AddCustomer = ({ open, onClose, onAdd }) => {
+const AddVendor = ({ open, onClose, onAdd }) => {
   const [formData, setFormData] = useState({
-    CustomerCode: '',
-    CustomerName: '',
+    VendorCode: '',
+    VendorName: '',
     BillingAddress: '',
     ShippingAddress: '',
     GSTIN: '',
@@ -45,17 +45,17 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
 
   const handleSubmit = async () => {
     // Validation
-    if (!formData.CustomerCode.trim()) {
-      setError('Customer code is required');
+    if (!formData.VendorCode.trim()) {
+      setError('Vendor code is required');
       return;
     }
 
-    if (!formData.CustomerName.trim()) {
-      setError('Customer name is required');
+    if (!formData.VendorName.trim()) {
+      setError('Vendor name is required');
       return;
     }
 
-    if (!formData.ContactPerson.trim()) {
+    if (!formData.VendorPerson.trim()) {
       setError('Contact person is required');
       return;
     }
@@ -87,11 +87,11 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
         resetForm();
         onClose();
       } else {
-        setError(response.data.message || 'Failed to add customer');
+        setError(response.data.message || 'Failed to add vendor');
       }
     } catch (err) {
-      console.error('Error adding customer:', err);
-      setError(err.response?.data?.message || 'Failed to add customer. Please try again.');
+      console.error('Error adding vendor:', err);
+      setError(err.response?.data?.message || 'Failed to add vendor. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -99,8 +99,8 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
 
   const resetForm = () => {
     setFormData({
-      CustomerCode: '',
-      CustomerName: '',
+      VendorCode: '',
+      VendorName: '',
       BillingAddress: '',
       ShippingAddress: '',
       GSTIN: '',
@@ -133,7 +133,7 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
         }
       }}
     >
-      <DialogTitle sx={{ 
+      {/* <DialogTitle sx={{ 
         borderBottom: '1px solid #E0E0E0', 
         pb: 2,
         backgroundColor: '#F8FAFC',
@@ -145,9 +145,9 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
           fontWeight: '600', 
           color: '#101010'
         }}>
-          Add New Customer
+          Add New Vendor
         </div>
-      </DialogTitle>
+      </DialogTitle> */}
       
       <DialogContent sx={{ 
         pt: 4, // Increased padding top from 3 to 4
@@ -177,16 +177,16 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Customer Code *"
-                  name="CustomerCode"
-                  value={formData.CustomerCode}
+                  label="Vendor Code *"
+                  name="VendorCode"
+                  value={formData.VendorCode}
                   onChange={handleChange}
                   required
                   disabled={loading}
                   size="medium"
                   variant="outlined"
-                  error={!!error && error.includes('Customer code')}
-                  helperText={error && error.includes('Customer code') ? error : ''}
+                  error={!!error && error.includes('Vendor code')}
+                  helperText={error && error.includes('Vendor code') ? error : ''}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 1,
@@ -197,16 +197,16 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Customer Name *"
-                  name="CustomerName"
-                  value={formData.CustomerName}
+                  label="Vendor Name *"
+                  name="VendorName"
+                  value={formData.VendorName}
                   onChange={handleChange}
                   required
                   disabled={loading}
                   size="medium"
                   variant="outlined"
-                  error={!!error && error.includes('Customer name')}
-                  helperText={error && error.includes('Customer name') ? error : ''}
+                  error={!!error && error.includes('Vendor name')}
+                  helperText={error && error.includes('Vendor name') ? error : ''}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 1,
@@ -393,7 +393,7 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
                   disabled={loading}
                 />
               }
-              label="Active Customer"
+              label="Active Vendor"
               sx={{ mt: 1 }}
             />
           </Stack>
@@ -437,11 +437,11 @@ const AddCustomer = ({ open, onClose, onAdd }) => {
             }
           }}
         >
-          {loading ? 'Adding...' : 'Add Customer'}
+          {loading ? 'Adding...' : 'Add Vendor'}
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default AddCustomer;
+export default AddVendor;

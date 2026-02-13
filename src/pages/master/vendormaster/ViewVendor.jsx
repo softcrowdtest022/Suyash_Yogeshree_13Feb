@@ -13,8 +13,8 @@ import {
 } from '@mui/material';
 import { Edit as EditIcon, CheckCircle as CheckCircleIcon, Cancel as CancelIcon } from '@mui/icons-material';
 
-const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
-  if (!customer) return null;
+const ViewVendor = ({ open, onClose, vendor, onEdit }) => {
+  if (!vendor) return null;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -47,7 +47,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
           color: '#101010',
           paddingTop: '8px'
         }}>
-          Customer Details
+          Vendor Details
         </div>
       </DialogTitle>
       
@@ -57,10 +57,10 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
             <Grid item xs={12} sm={6}>
               <Stack spacing={1}>
                 <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                  Customer Code
+                  Vendor Code
                 </Typography>
                 <Typography variant="body1" fontWeight={600} sx={{ fontSize: '1rem' }}>
-                  {customer.CustomerCode}
+                  {vendor.VendorCode}
                 </Typography>
               </Stack>
             </Grid>
@@ -69,7 +69,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                 <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
                   Status
                 </Typography>
-                {customer.IsActive ? (
+                {vendor.IsActive ? (
                   <Chip
                     icon={<CheckCircleIcon />}
                     label="Active"
@@ -113,10 +113,10 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
           <Stack spacing={2}>
             <Stack spacing={1}>
               <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.75rem', fontWeight: 500 }}>
-                Customer Name
+                Vendor Name
               </Typography>
               <Typography variant="body1" fontWeight={500} sx={{ fontSize: '1rem' }}>
-                {customer.CustomerName}
+                {vendor.VendorName}
               </Typography>
             </Stack>
 
@@ -127,7 +127,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                     Contact Person
                   </Typography>
                   <Typography variant="body1" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                    {customer.ContactPerson}
+                    {vendor.ContactPerson}
                   </Typography>
                 </Stack>
               </Grid>
@@ -137,7 +137,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                     Phone
                   </Typography>
                   <Typography variant="body1" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                    {customer.Phone}
+                    {vendor.Phone}
                   </Typography>
                 </Stack>
               </Grid>
@@ -148,7 +148,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                 Email
               </Typography>
               <Typography variant="body1" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                {customer.Email || 'Not provided'}
+                {vendor.Email || 'Not provided'}
               </Typography>
             </Stack>
           </Stack>
@@ -167,7 +167,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                     GSTIN
                   </Typography>
                   <Typography variant="body1" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                    {customer.GSTIN || 'Not provided'}
+                    {vendor.GSTIN || 'Not provided'}
                   </Typography>
                 </Stack>
               </Grid>
@@ -177,7 +177,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                     State
                   </Typography>
                   <Typography variant="body1" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                    {customer.State || 'Not specified'}
+                    {vendor.State || 'Not specified'}
                   </Typography>
                 </Stack>
               </Grid>
@@ -188,7 +188,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                 State Code
               </Typography>
               <Typography variant="body1" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                {customer.StateCode || 'Not specified'}
+                {vendor.StateCode || 'Not specified'}
               </Typography>
             </Stack>
           </Stack>
@@ -213,7 +213,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                     borderRadius: 1,
                     minHeight: '80px'
                   }}>
-                    {customer.BillingAddress || 'Not provided'}
+                    {vendor.BillingAddress || 'Not provided'}
                   </Typography>
                 </Stack>
               </Grid>
@@ -229,7 +229,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                     borderRadius: 1,
                     minHeight: '80px'
                   }}>
-                    {customer.ShippingAddress || 'Not provided'}
+                    {vendor.ShippingAddress || 'Not provided'}
                   </Typography>
                 </Stack>
               </Grid>
@@ -244,7 +244,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                 Payment Terms
               </Typography>
               <Typography variant="body1" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                {customer.PaymentTerms || 'Not specified'}
+                {vendor.PaymentTerms || 'Not specified'}
               </Typography>
             </Stack>
 
@@ -253,7 +253,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                 Created At
               </Typography>
               <Typography variant="body2" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                {formatDate(customer.CreatedAt)}
+                {formatDate(vendor.CreatedAt)}
               </Typography>
             </Stack>
             
@@ -262,7 +262,7 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
                 Last Updated
               </Typography>
               <Typography variant="body2" color="textPrimary" sx={{ fontSize: '0.875rem' }}>
-                {formatDate(customer.UpdatedAt)}
+                {formatDate(vendor.UpdatedAt)}
               </Typography>
             </Stack>
           </Stack>
@@ -307,11 +307,11 @@ const ViewCustomer = ({ open, onClose, customer, onEdit }) => {
             }
           }}
         >
-          Edit Customer
+          Edit Vendor
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default ViewCustomer;
+export default ViewVendor;

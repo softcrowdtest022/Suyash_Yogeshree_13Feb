@@ -8,7 +8,8 @@ import {
   Typography,
   Alert,
   Avatar,
-  Stack
+  Stack,
+  Box
 } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import axios from 'axios';
@@ -17,6 +18,8 @@ import BASE_URL from '../../../config/Config';
 const DeleteEmployees = ({ open, onClose, employee, onDelete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  if (!employee) return null;
 
   const getAvatarInitials = (firstName, lastName) => {
     const first = firstName ? firstName.charAt(0) : '';

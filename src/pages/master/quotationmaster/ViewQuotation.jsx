@@ -424,11 +424,11 @@ const ViewQuotation = ({ open, onClose, quotation, onEdit }) => {
               <Grid item xs={12} sm={6}>
                 <Stack spacing={1}>
                   <Typography variant="caption" color="textSecondary">
-                    Customer Remarks
+                    Vendor Remarks
                   </Typography>
                   <Paper sx={{ p: 2, bgcolor: '#F8FAFC', minHeight: 80 }}>
                     <Typography variant="body2">
-                      {quotation.CustomerRemarks || 'No customer remarks'}
+                      {quotation.VendorRemarks || 'No vendor remarks'}
                     </Typography>
                   </Paper>
                 </Stack>

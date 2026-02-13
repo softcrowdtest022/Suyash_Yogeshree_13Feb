@@ -17,10 +17,10 @@ import { Edit as EditIcon } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
 
-const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
+const EditVendor = ({ open, onClose, vendor, onUpdate }) => {
   const [formData, setFormData] = useState({
-    CustomerCode: '',
-    CustomerName: '',
+    VendorCode: '',
+    VendorName: '',
     BillingAddress: '',
     ShippingAddress: '',
     GSTIN: '',
@@ -36,23 +36,23 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (customer) {
+    if (vendor) {
       setFormData({
-        CustomerCode: customer.CustomerCode || '',
-        CustomerName: customer.CustomerName || '',
-        BillingAddress: customer.BillingAddress || '',
-        ShippingAddress: customer.ShippingAddress || '',
-        GSTIN: customer.GSTIN || '',
-        State: customer.State || '',
-        StateCode: customer.StateCode?.toString() || '',
-        ContactPerson: customer.ContactPerson || '',
-        Phone: customer.Phone || '',
-        Email: customer.Email || '',
-        PaymentTerms: customer.PaymentTerms || '',
-        IsActive: customer.IsActive || true
+        VendorCode: vendor.VendorCode || '',
+        VendorName: vendor.VendorName || '',
+        BillingAddress: vendor.BillingAddress || '',
+        ShippingAddress: vendor.ShippingAddress || '',
+        GSTIN: vendor.GSTIN || '',
+        State: vendor.State || '',
+        StateCode: vendor.StateCode?.toString() || '',
+        ContactPerson: vendor.ContactPerson || '',
+        Phone: vendor.Phone || '',
+        Email: vendor.Email || '',
+        PaymentTerms: vendor.PaymentTerms || '',
+        IsActive: vendor.IsActive || true
       });
     }
-  }, [customer]);
+  }, [Vendor])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -64,13 +64,13 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
 
   const handleSubmit = async () => {
     // Validation
-    if (!formData.CustomerCode.trim()) {
-      setError('Customer code is required');
+    if (!formData.VendorCode.trim()) {
+      setError('Vendor code is required');
       return;
     }
 
-    if (!formData.CustomerName.trim()) {
-      setError('Customer name is required');
+    if (!formData.VendorName.trim()) {
+      setError('Vendor name is required');
       return;
     }
 
@@ -94,7 +94,7 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${BASE_URL}/api/customers/${customer._id}`, formData, {
+      const response = await axios.put(`${BASE_URL}/api/customers/${vendor._id}`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -105,11 +105,11 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
         onUpdate(response.data.data);
         onClose();
       } else {
-        setError(response.data.message || 'Failed to update customer');
+        setError(response.data.message || 'Failed to update vendor');
       }
     } catch (err) {
-      console.error('Error updating customer:', err);
-      setError(err.response?.data?.message || 'Failed to update customer. Please try again.');
+      console.error('Error updating vendor:', err);
+      setError(err.response?.data?.message || 'Failed to update vendor. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,7 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
           fontWeight: '600', 
           color: '#101010'
         }}>
-          Edit Customer
+          Edit Vendor
         </div>
       </DialogTitle>
       
@@ -172,16 +172,16 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Customer Code *"
-                  name="CustomerCode"
-                  value={formData.CustomerCode}
+                  label="Vendor Code *"
+                  name="VendorCode"
+                  value={formData.VendorCode}
                   onChange={handleChange}
                   required
                   disabled={loading}
                   size="medium"
                   variant="outlined"
-                  error={!!error && error.includes('Customer code')}
-                  helperText={error && error.includes('Customer code') ? error : ''}
+                  error={!!error && error.includes('Vendor code')}
+                  helperText={error && error.includes('Vendor code') ? error : ''}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 1,
@@ -192,16 +192,16 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Customer Name *"
-                  name="CustomerName"
-                  value={formData.CustomerName}
+                  label="Vendor Name *"
+                  name="VendorName"
+                  value={formData.VendorName}
                   onChange={handleChange}
                   required
                   disabled={loading}
                   size="medium"
                   variant="outlined"
-                  error={!!error && error.includes('Customer name')}
-                  helperText={error && error.includes('Customer name') ? error : ''}
+                  error={!!error && error.includes('Vendor name')}
+                  helperText={error && error.includes('Vendor name') ? error : ''}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 1,
@@ -388,7 +388,7 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
                   disabled={loading}
                 />
               }
-              label="Active Customer"
+              label="Active Vendor"
               sx={{ mt: 1 }}
             />
           </Stack>
@@ -432,11 +432,11 @@ const EditCustomer = ({ open, onClose, customer, onUpdate }) => {
             }
           }}
         >
-          {loading ? 'Updating...' : 'Update Customer'}
+          {loading ? 'Updating...' : 'Update Vendor'}
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default EditCustomer;
+export default EditVendor;

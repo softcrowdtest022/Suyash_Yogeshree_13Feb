@@ -12,33 +12,33 @@ import { Delete as DeleteIcon } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
 
-const DeleteCustomer = ({ open, onClose, customer, onDelete }) => {
+const DeleteVendor = ({ open, onClose, vendor, onDelete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleDelete = async () => {
-    if (!customer?._id) return;
+    if (!vendor?._id) return;
 
     setLoading(true);
     setError('');
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`${BASE_URL}/api/customers/${customer._id}`, {
+      const response = await axios.delete(`${BASE_URL}/api/customers/${vendor._id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
       if (response.data.success) {
-        onDelete(customer._id);
+        onDelete(vendor._id);
         onClose();
       } else {
-        setError(response.data.message || 'Failed to delete customer');
+        setError(response.data.message || 'Failed to delete vendor');
       }
     } catch (err) {
-      console.error('Error deleting customer:', err);
-      setError(err.response?.data?.message || 'Failed to delete customer. Please try again.');
+      console.error('Error deleting vendor:', err);
+      setError(err.response?.data?.message || 'Failed to delete vendor. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -72,10 +72,10 @@ const DeleteCustomer = ({ open, onClose, customer, onDelete }) => {
       <DialogContent sx={{ pt: 3 }}>
         <div style={{ marginTop: '16px' }}>
           <Typography variant="body1" sx={{ mb: 2, fontSize: '0.875rem' }}>
-            Are you sure you want to delete the customer <strong>"{customer?.CustomerName}"</strong> (Code: {customer?.CustomerCode})?
+            Are you sure you want to delete the vendor <strong>"{vendor?.VendorName}"</strong> (Code: {vendor?.VendorCode})?
           </Typography>
           <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.875rem' }}>
-            This action cannot be undone. All related transactions and records associated with this customer will be affected.
+            This action cannot be undone. All related transactions and records associated with this vendor will be affected.
           </Typography>
           
           {error && (
@@ -133,11 +133,11 @@ const DeleteCustomer = ({ open, onClose, customer, onDelete }) => {
             }
           }}
         >
-          {loading ? 'Deleting...' : 'Delete Customer'}
+          {loading ? 'Deleting...' : 'Delete Vendor'}
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default DeleteCustomer;
+export default DeleteVendor;
