@@ -14,25 +14,25 @@ import {
 import { Delete as DeleteIcon } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
-
+ 
 const DeleteEmployees = ({ open, onClose, employee, onDelete }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+ 
   if (!employee) return null;
-
+ 
   const getAvatarInitials = (firstName, lastName) => {
     const first = firstName ? firstName.charAt(0) : '';
     const last = lastName ? lastName.charAt(0) : '';
     return `${first}${last}`.toUpperCase() || 'U';
   };
-
+ 
   const handleDelete = async () => {
     if (!employee?._id) return;
-
+ 
     setLoading(true);
     setError('');
-
+ 
     try {
       const token = localStorage.getItem('token');
       const response = await axios.delete(`${BASE_URL}/api/employees/${employee._id}`, {
@@ -40,7 +40,7 @@ const DeleteEmployees = ({ open, onClose, employee, onDelete }) => {
           'Authorization': `Bearer ${token}`
         }
       });
-
+ 
       if (response.data.success) {
         onDelete(employee._id);
         onClose();
@@ -54,39 +54,39 @@ const DeleteEmployees = ({ open, onClose, employee, onDelete }) => {
       setLoading(false);
     }
   };
-
+ 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="sm" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: { borderRadius: 2 }
       }}
     >
-      <DialogTitle sx={{ 
-        borderBottom: '1px solid #E0E0E0', 
+      <DialogTitle sx={{
+        borderBottom: '1px solid #E0E0E0',
         pb: 2,
         backgroundColor: '#F8FAFC'
       }}>
-        <div style={{ 
-          fontSize: '20px', 
-          fontWeight: '600', 
+        <div style={{
+          fontSize: '20px',
+          fontWeight: '600',
           color: '#101010',
           paddingTop: '8px'
         }}>
           Confirm Delete
         </div>
       </DialogTitle>
-      
+     
       <DialogContent sx={{ pt: 3 }}>
-        {/* Add padding from top */}
+     
         <div style={{ marginTop: '16px' }}>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-            <Avatar sx={{ 
-              width: 60, 
-              height: 60, 
+            <Avatar sx={{
+              width: 60,
+              height: 60,
               bgcolor: '#1976D2',
               fontSize: '1.25rem'
             }}>
@@ -104,18 +104,18 @@ const DeleteEmployees = ({ open, onClose, employee, onDelete }) => {
               </Typography>
             </Box>
           </Stack>
-          
+         
           <Typography variant="body1" sx={{ mb: 2, fontSize: '0.875rem' }}>
             Are you sure you want to delete this employee?
           </Typography>
           <Typography variant="body2" color="error" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
             ⚠️ This action cannot be undone. All employee records will be permanently deleted.
           </Typography>
-          
+         
           {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
+            <Alert
+              severity="error"
+              sx={{
                 mt: 3,
                 borderRadius: 1,
                 '& .MuiAlert-icon': {
@@ -128,16 +128,16 @@ const DeleteEmployees = ({ open, onClose, employee, onDelete }) => {
           )}
         </div>
       </DialogContent>
-      
-      <DialogActions sx={{ 
-        px: 3, 
-        pb: 3, 
-        borderTop: '1px solid #E0E0E0', 
+     
+      <DialogActions sx={{
+        px: 3,
+        pb: 3,
+        borderTop: '1px solid #E0E0E0',
         pt: 2,
         backgroundColor: '#F8FAFC'
       }}>
-        <Button 
-          onClick={onClose} 
+        <Button
+          onClick={onClose}
           disabled={loading}
           sx={{
             borderRadius: 1,
@@ -173,5 +173,6 @@ const DeleteEmployees = ({ open, onClose, employee, onDelete }) => {
     </Dialog>
   );
 };
-
+ 
 export default DeleteEmployees;
+ 

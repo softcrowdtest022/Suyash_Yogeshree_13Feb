@@ -38,7 +38,7 @@ const DeleteCompanies = ({ open, onClose, company, onDelete }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`${BASE_URL}/api/companies/${company._id}`, {
+      const response = await axios.delete(`${BASE_URL}/api/company/${company._id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -84,7 +84,7 @@ const DeleteCompanies = ({ open, onClose, company, onDelete }) => {
       </DialogTitle>
       
       <DialogContent sx={{ pt: 3 }}>
-        {/* Add padding from top */}
+    
         <div style={{ marginTop: '16px' }}>
           <Stack spacing={2} sx={{ mb: 3 }}>
             <Stack direction="row" spacing={2} alignItems="center">

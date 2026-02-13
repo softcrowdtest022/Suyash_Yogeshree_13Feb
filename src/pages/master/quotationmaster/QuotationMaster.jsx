@@ -30,6 +30,7 @@ import {
   CardContent,
   Grid
 } from '@mui/material';
+
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
@@ -50,13 +51,14 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
+import PrintIcon from '@mui/icons-material/Print';
 
 // Import modal components
 import AddQuotation from './AddQuotation';
 import EditQuotation from './EditQuotation';
 import ViewQuotation from './ViewQuotation';
 import DeleteQuotation from './DeleteQuotation';
-
+import PrintQuotation from './PrintQuotation';
 // Color constants
 const HEADER_GRADIENT = 'linear-gradient(135deg, #164e63 0%, #00B4D8 50%, #0e7490 100%)';
 const STRIPE_COLOR_ODD = '#FFFFFF';
@@ -75,7 +77,8 @@ const STATUS_COLORS = {
 };
 
 // Action Menu Component
-const ActionMenu = ({ item, onView, onEdit, onDelete, anchorEl, onClose, onOpen }) => {
+// In QuotationMaster.jsx - Update the ActionMenu component
+const ActionMenu = ({ item, onView, onEdit, onDelete, onPrint, anchorEl, onClose, onOpen }) => {
   return (
     <>
       <Tooltip title="Actions">
@@ -122,16 +125,16 @@ const ActionMenu = ({ item, onView, onEdit, onDelete, anchorEl, onClose, onOpen 
         </MenuItem>
         <MenuItem 
           onClick={() => {
-            onEdit(item);
+            onPrint(item);
             onClose();
           }}
           sx={{ py: 1 }}
         >
-          <ListItemIcon sx={{ color: '#10B981', minWidth: 36 }}>
-            <EditIcon fontSize="small" />
+          <ListItemIcon sx={{ color: '#6B7280', minWidth: 36 }}>
+            <PrintIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>
-            <Typography variant="body2" fontWeight={500}>Edit</Typography>
+            <Typography variant="body2" fontWeight={500}>Generate PDF</Typography>
           </ListItemText>
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
@@ -177,7 +180,8 @@ const QuotationMaster = () => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openViewModal, setOpenViewModal] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  
+  const [openPrintModal, setOpenPrintModal] = useState(false);
+
   // Selected quotation
   const [selectedQuotation, setSelectedQuotation] = useState(null);
   
@@ -205,6 +209,13 @@ const QuotationMaster = () => {
     sentCount: 0,
     approvedCount: 0
   });
+  
+  // onPrint handler
+  const openPrintQuotation = (quotation) => {
+    setSelectedQuotation(quotation);
+    setOpenPrintModal(true);
+    handleActionMenuClose();
+  };
 
   // Fetch quotations from API
   useEffect(() => {
@@ -929,6 +940,7 @@ const QuotationMaster = () => {
                           onView={openViewQuotationModal}
                           onEdit={openEditQuotationModal}
                           onDelete={openDeleteQuotationDialog}
+                          onPrint={openPrintQuotation}
                           anchorEl={isActionMenuOpen ? actionMenuAnchor : null}
                           onClose={handleActionMenuClose}
                           onOpen={(e) => handleActionMenuOpen(e, quotation)}
@@ -995,7 +1007,14 @@ const QuotationMaster = () => {
               setOpenEditModal(true);
             }}
           />
-
+          <PrintQuotation
+      open={openPrintModal}
+      onClose={() => {
+        setOpenPrintModal(false);
+        setSelectedQuotation(null);
+      }}
+      quotation={selectedQuotation}
+    />
           <DeleteQuotation 
             open={openDeleteDialog}
             onClose={() => {

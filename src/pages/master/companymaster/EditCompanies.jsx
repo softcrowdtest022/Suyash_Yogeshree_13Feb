@@ -67,7 +67,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
 
   const validateStep = (step) => {
     switch (step) {
-      case 0: // Company Information
+      case 0: 
         if (!formData.CompanyName.trim()) {
           setError('Company name is required');
           return false;
@@ -94,7 +94,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
         }
         break;
       
-      case 1: // Bank & Contact Details
+      case 1:
         if (!formData.Email.trim()) {
           setError('Email is required');
           return false;
@@ -131,7 +131,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${BASE_URL}/api/companies/${company._id}`, formData, {
+      const response = await axios.put(`${BASE_URL}/api/company/${company._id}`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -157,7 +157,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
       case 0:
         return (
           <Stack spacing={2.5}>
-            {/* Company Name - Full Width */}
+        
             <TextField
               fullWidth
               label="Company Name *"
@@ -175,7 +175,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
               }}
             />
             
-            {/* Address - Full Width */}
+    
             <TextField
               fullWidth
               label="Address *"
@@ -195,7 +195,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
               }}
             />
             
-            {/* GSTIN and PAN - Two fields in one row */}
+  
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <TextField
@@ -235,7 +235,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
               </Grid>
             </Grid>
             
-            {/* State and State Code - Two fields in one row */}
+      
             <Grid container spacing={2}>
               <Grid item xs={8}>
                 <TextField
@@ -281,7 +281,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
       case 1:
         return (
           <Stack spacing={2.5}>
-            {/* Email and Phone - Two fields in one row */}
+  
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <TextField
@@ -325,7 +325,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
               Bank Details (Optional)
             </Typography>
             
-            {/* Bank Name - Full Width */}
+      
             <TextField
               fullWidth
               label="Bank Name"
@@ -342,7 +342,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
               }}
             />
             
-            {/* Account Number and IFSC - Two fields in one row */}
+  
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <TextField
@@ -416,7 +416,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
         </div>
       </DialogTitle>
       
-      {/* Error Alert at the top */}
+
       {error && (
         <Box sx={{ px: 3, py: 2 }}>
           <Alert 
@@ -434,7 +434,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
         </Box>
       )}
       
-      {/* Stepper with proper spacing */}
+      
       <Box sx={{ 
         px: 3, 
         py: 2,
@@ -461,7 +461,7 @@ const EditCompanies = ({ open, onClose, company, onUpdate }) => {
         px: 3,
         pb: 3,
       }}>
-        {/* Step Content with bottom spacing */}
+
         <Box sx={{ 
           minHeight: '320px',
           display: 'flex',

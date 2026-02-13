@@ -44,22 +44,21 @@ import {
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
 
-// Import modal components
 import AddCompanies from './AddCompanies';
 import EditCompanies from './EditCompanies';
 import ViewCompanies from './ViewCompanies';
 import DeleteCompanies from './DeleteCompanies';
 
-// Color constants - EXACT SAME as header gradient
+
 const HEADER_GRADIENT = 'linear-gradient(135deg, #164e63 0%, #00B4D8 50%, #0e7490 100%)';
 const STRIPE_COLOR_ODD = '#FFFFFF';
-const STRIPE_COLOR_EVEN = '#f8fafc'; // slate-50
-const HOVER_COLOR = '#f1f5f9'; // slate-100
+const STRIPE_COLOR_EVEN = '#f8fafc'; 
+const HOVER_COLOR = '#f1f5f9'; 
 const PRIMARY_BLUE = '#00B4D8';
 const TEXT_COLOR_HEADER = '#FFFFFF';
-const TEXT_COLOR_MAIN = '#0f172a'; // slate-900
+const TEXT_COLOR_MAIN = '#0f172a'; 
 
-// Action Menu Component
+
 const ActionMenu = ({ company, onView, onEdit, onDelete, anchorEl, onClose, onOpen }) => {
   return (
     <>
@@ -142,38 +141,33 @@ const ActionMenu = ({ company, onView, onEdit, onDelete, anchorEl, onClose, onOp
 };
 
 const CompanyMaster = () => {
-  // State for data
+  
   const [companies, setCompanies] = useState([]);
   const [filteredCompanies, setFilteredCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Table state
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selected, setSelected] = useState([]);
   
-  // Menu state for action buttons
   const [actionMenuAnchor, setActionMenuAnchor] = useState(null);
   const [selectedCompanyForAction, setSelectedCompanyForAction] = useState(null);
   
-  // Modal state
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openViewModal, setOpenViewModal] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  
-  // Selected company
+
   const [selectedCompany, setSelectedCompany] = useState(null);
   
-  // Notification state
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
 
-  // Fetch companies from API
+
   useEffect(() => {
     fetchCompanies();
   }, []);
@@ -202,7 +196,6 @@ const CompanyMaster = () => {
     }
   };
   
-  // Handle search
   const handleSearch = (event) => {
     const value = event.target.value.toLowerCase();
     setSearchTerm(value);
@@ -219,7 +212,6 @@ const CompanyMaster = () => {
     setPage(0);
   };
   
-  // Handle select all
   const handleSelectAll = (event) => {
     if (event.target.checked) {
       setSelected(filteredCompanies.map(company => company._id));
@@ -228,7 +220,6 @@ const CompanyMaster = () => {
     }
   };
   
-  // Handle single selection
   const handleSelect = (id) => {
     const selectedIndex = selected.indexOf(id);
     let newSelected = [];
@@ -242,7 +233,6 @@ const CompanyMaster = () => {
     setSelected(newSelected);
   };
   
-  // Handle page change
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -253,14 +243,12 @@ const CompanyMaster = () => {
     setPage(0);
   };
   
-  // Handle add company
   const handleAddCompany = (newCompany) => {
     setCompanies([...companies, newCompany]);
     setFilteredCompanies([...filteredCompanies, newCompany]);
     showNotification('Company added successfully!', 'success');
   };
   
-  // Handle edit company
   const handleEditCompany = (updatedCompany) => {
     const updatedCompanies = companies.map(company =>
       company._id === updatedCompany._id ? updatedCompany : company
@@ -271,7 +259,7 @@ const CompanyMaster = () => {
     showNotification('Company updated successfully!', 'success');
   };
   
-  // Handle delete company
+  
   const handleDeleteCompany = (companyId) => {
     const updatedCompanies = companies.filter(company => company._id !== companyId);
     setCompanies(updatedCompanies);
@@ -280,12 +268,12 @@ const CompanyMaster = () => {
     showNotification('Company deleted successfully!', 'success');
   };
   
-  // Handle bulk delete
+
   const handleBulkDelete = () => {
     showNotification('Bulk delete requires API implementation', 'warning');
   };
   
-  // Action menu handlers
+
   const handleActionMenuOpen = (event, company) => {
     setActionMenuAnchor(event.currentTarget);
     setSelectedCompanyForAction(company);
@@ -296,28 +284,27 @@ const CompanyMaster = () => {
     setSelectedCompanyForAction(null);
   };
 
-  // Open edit modal
+  
   const openEditCompanyModal = (company) => {
     setSelectedCompany(company);
     setOpenEditModal(true);
     handleActionMenuClose();
   };
   
-  // Open view modal
   const openViewCompanyModal = (company) => {
     setSelectedCompany(company);
     setOpenViewModal(true);
     handleActionMenuClose();
   };
   
-  // Open delete confirmation
+  
   const openDeleteCompanyDialog = (company) => {
     setSelectedCompany(company);
     setOpenDeleteDialog(true);
     handleActionMenuClose();
   };
   
-  // Show notification
+
   const showNotification = (message, severity) => {
     setSnackbar({
       open: true,
@@ -326,7 +313,7 @@ const CompanyMaster = () => {
     });
   };
   
-  // Format date
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -336,7 +323,7 @@ const CompanyMaster = () => {
     });
   };
   
-  // Get company initials for avatar
+
   const getCompanyInitials = (companyName) => {
     if (!companyName) return 'C';
     
@@ -348,7 +335,7 @@ const CompanyMaster = () => {
     return companyName.substring(0, 2).toUpperCase();
   };
   
-  // Get avatar color based on company name
+
   const getAvatarColor = (companyName) => {
     if (!companyName) return PRIMARY_BLUE;
     
@@ -369,7 +356,7 @@ const CompanyMaster = () => {
     return colors[charCode % colors.length];
   };
   
-  // Paginated companies
+
   const paginatedCompanies = filteredCompanies.slice(
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
@@ -377,7 +364,7 @@ const CompanyMaster = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
+      
       <Box sx={{ mb: 3 }}>
         <Typography 
           variant="h5" 
@@ -399,7 +386,7 @@ const CompanyMaster = () => {
         </Typography>
       </Box>
 
-      {/* Action Bar */}
+    
       <Paper sx={{ 
         p: 2, 
         mb: 3, 
@@ -409,7 +396,7 @@ const CompanyMaster = () => {
         border: '1px solid #e2e8f0'
       }}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" justifyContent="space-between">
-          {/* Search and Filters */}
+          
           <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
             <TextField
               placeholder="Search by company name, GSTIN, PAN, or state..."
@@ -484,7 +471,7 @@ const CompanyMaster = () => {
             </Button>
           </Stack>
 
-          {/* Action Buttons */}
+        
           <Stack direction="row" spacing={2} alignItems="center">
             {selected.length > 0 && (
               <Button
@@ -548,7 +535,6 @@ const CompanyMaster = () => {
         </Stack>
       </Paper>
 
-      {/* Companies Table */}
       <Paper sx={{ 
         width: '100%', 
         borderRadius: 2, 
@@ -811,7 +797,7 @@ const CompanyMaster = () => {
           </Table>
         </TableContainer>
 
-        {/* Pagination */}
+      
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
@@ -833,7 +819,7 @@ const CompanyMaster = () => {
         />
       </Paper>
 
-      {/* Separate Modal Components */}
+  
       <AddCompanies 
         open={openAddModal}
         onClose={() => setOpenAddModal(false)}
@@ -877,7 +863,7 @@ const CompanyMaster = () => {
         </>
       )}
 
-      {/* Snackbar Notification */}
+  
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
