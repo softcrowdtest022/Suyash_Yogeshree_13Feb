@@ -37,26 +37,38 @@ const DeleteHoliday = ({ open, onClose, holiday, onDelete }) => {
       );
 
       if (response.data.success) {
-        onDelete(holiday._id);
-        onClose();
+        if (onDelete && typeof onDelete === 'function') {
+          onDelete(holiday._id);
+        }
+        onClose(true); // Pass true to indicate success
       } else {
         setError(response.data.message || 'Failed to delete holiday');
       }
     } catch (err) {
       console.error('Error deleting holiday:', err);
-      setError(
-        err.response?.data?.message ||
-        'Failed to delete holiday. Please try again.'
-      );
+      
+      if (err.response) {
+        setError(err.response.data?.message || 
+                err.response.data?.error || 
+                `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        setError('No response from server. Please check your connection.');
+      } else {
+        setError('Error setting up request. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClose = () => {
+    onClose(false); // Pass false when cancelled
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth="sm"
       fullWidth
       PaperProps={{
@@ -78,22 +90,22 @@ const DeleteHoliday = ({ open, onClose, holiday, onDelete }) => {
             paddingTop: '8px'
           }}
         >
-          Confirm Delete
+          Confirm Delete Holiday
         </div>
       </DialogTitle>
 
       <DialogContent sx={{ pt: 3 }}>
         <div style={{ marginTop: '16px' }}>
           <Stack spacing={2} sx={{ mb: 3 }}>
-            <Typography variant="h6" fontWeight={600}>
+            <Typography variant="h6" fontWeight={600} color="error.main">
               {holiday?.Name}
             </Typography>
 
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
               <Chip
                 label={holiday?.Date
                   ? new Date(holiday.Date).toLocaleDateString()
-                  : ''}
+                  : 'No date'}
                 sx={{
                   fontWeight: 500,
                   backgroundColor: '#E3F2FD',
@@ -102,9 +114,18 @@ const DeleteHoliday = ({ open, onClose, holiday, onDelete }) => {
               />
 
               <Chip
-                label={holiday?.IsOptional ? 'Optional' : 'Mandatory'}
-                color={holiday?.IsOptional ? 'default' : 'success'}
+                label={holiday?.Type || 'Not specified'}
                 sx={{
+                  fontWeight: 500,
+                  backgroundColor: '#FFF3E0',
+                  color: '#E65100'
+                }}
+              />
+
+              <Chip
+                label={holiday?.IsActive ? 'Active' : 'Inactive'}
+                color={holiday?.IsActive ? 'success' : 'default'}
+                sx={{ 
                   fontWeight: 500,
                   '&.MuiChip-colorSuccess': {
                     bgcolor: '#E8F5E9',
@@ -118,9 +139,28 @@ const DeleteHoliday = ({ open, onClose, holiday, onDelete }) => {
               />
             </Stack>
 
+            {holiday?.IsRecurring && (
+              <Chip
+                label="Recurring Every Year"
+                size="small"
+                sx={{
+                  fontWeight: 500,
+                  backgroundColor: '#E8EAF6',
+                  color: '#3F51B5',
+                  width: 'fit-content'
+                }}
+              />
+            )}
+
             {holiday?.Description && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                <strong>Description:</strong> {holiday.Description}
+              </Typography>
+            )}
+
+            {holiday?.Year && (
               <Typography variant="body2" color="text.secondary">
-                {holiday.Description}
+                <strong>Year:</strong> {holiday.Year}
               </Typography>
             )}
           </Stack>
@@ -137,7 +177,7 @@ const DeleteHoliday = ({ open, onClose, holiday, onDelete }) => {
             color="error"
             sx={{ fontSize: '0.875rem', fontWeight: 500 }}
           >
-            This action cannot be undone.
+            ⚠️ This action cannot be undone. All associated data will be permanently removed.
           </Typography>
 
           {error && (
@@ -164,7 +204,7 @@ const DeleteHoliday = ({ open, onClose, holiday, onDelete }) => {
         }}
       >
         <Button
-          onClick={onClose}
+          onClick={handleClose}
           disabled={loading}
           sx={{
             borderRadius: 1,

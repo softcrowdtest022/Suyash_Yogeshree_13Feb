@@ -29,7 +29,9 @@ const AddLeaveTypes = ({ open, onClose, onAdd }) => {
     const { name, value, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'IsActive' ? checked : name === 'MaxDaysPerYear' ? parseInt(value) || '' : value
+      [name]: name === 'IsActive' ? checked : 
+               name === 'MaxDaysPerYear' ? parseInt(value) || '' : 
+               value
     }));
   };
 
@@ -55,23 +57,47 @@ const AddLeaveTypes = ({ open, onClose, onAdd }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`${BASE_URL}/api/leavetypes`, formData, {
+      
+      // Prepare data - ensure MaxDaysPerYear is a number
+      const submitData = {
+        ...formData,
+        MaxDaysPerYear: parseInt(formData.MaxDaysPerYear)
+      };
+
+      const response = await axios.post(`${BASE_URL}/api/leavetypes`, submitData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
+      console.log('Response:', response.data);
+
+      // Check if response is successful
       if (response.data.success) {
-        onAdd(response.data.data);
+        // Only call onAdd if it exists and is a function
+        if (onAdd && typeof onAdd === 'function') {
+          onAdd(response.data.data);
+        }
+        
         resetForm();
-        onClose();
+        onClose(true); // Pass true to indicate success
       } else {
         setError(response.data.message || 'Failed to add leave type');
       }
     } catch (err) {
       console.error('Error adding leave type:', err);
-      setError(err.response?.data?.message || 'Failed to add leave type. Please try again.');
+      
+      // Handle specific error cases
+      if (err.response) {
+        setError(err.response.data?.message || 
+                err.response.data?.error || 
+                `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        setError('No response from server. Please check your connection.');
+      } else {
+        setError('Error setting up request. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -89,7 +115,7 @@ const AddLeaveTypes = ({ open, onClose, onAdd }) => {
 
   const handleClose = () => {
     resetForm();
-    onClose();
+    onClose(false); // Pass false when cancelled
   };
 
   return (

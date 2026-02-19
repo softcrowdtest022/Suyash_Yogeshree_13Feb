@@ -70,23 +70,34 @@ const AddHoliday = ({ open, onClose, onAdd }) => {
                 }
             );
 
+            console.log('Holiday response:', response.data);
+
+            // Check if response is successful
             if (response.data.success) {
-                onAdd(response.data.data);
-                if (onAdd) {
+                // Only call onAdd if it exists and is a function
+                if (onAdd && typeof onAdd === 'function') {
                     onAdd(response.data.data);
                 }
+                
                 resetForm();
-                onClose();
+                onClose(true); // Pass true to indicate success
             } else {
                 setError(response.data.message || 'Failed to add holiday');
             }
 
         } catch (err) {
             console.error('Error adding holiday:', err);
-            setError(
-                err.response?.data?.message ||
-                'Failed to add holiday. Please try again.'
-            );
+            
+            // Better error handling
+            if (err.response) {
+                setError(err.response.data?.message || 
+                        err.response.data?.error || 
+                        `Server error: ${err.response.status}`);
+            } else if (err.request) {
+                setError('No response from server. Please check your connection.');
+            } else {
+                setError('Error setting up request. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -107,7 +118,7 @@ const AddHoliday = ({ open, onClose, onAdd }) => {
 
     const handleClose = () => {
         resetForm();
-        onClose();
+        onClose(false); // Pass false when cancelled
     };
 
     return (

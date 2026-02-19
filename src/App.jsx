@@ -30,6 +30,16 @@ import MyLeaves from './pages/hrmaster/employeeleavemaster/MyLeaves'
 import LeaveApproval from './pages/hrmaster/employeeleavemaster/LeaveApproval'
 import EmployeeLeaveMaster from './pages/hrmaster/employeeleavemaster/EmployeeLeaveMaster'
 import AdminLeaveApproval from './pages/hrmaster/adminleavemaster/AdminLeaveApproval'
+import ShiftMaster from './pages/hrmaster/shiftmaster/ShiftMaster'
+import MedicalRecordMaster from './pages/hrmaster/medicalrecordmaster/MedicalRecordMaster'
+import AccidentMaster from './pages/hrmaster/accidentmaster/AccidentMaster'
+import RequisitionMaster from './pages/hrmaster/requisitionmaster/RequisitionMaster'
+import JobOpeningMaster from './pages/hrmaster/jobopeningmaster/JobOpeningMaster'
+import CandidateMaster from './pages/hrmaster/candidatemaster/CandidateMaster'
+import InterviewMaster from './pages/hrmaster/interviewmaster/InterviewMaster'
+import SalaryMaster from './pages/hrmaster/salarymaster/SalaryMaster'
+import PieceRateMaster from './pages/hrmaster/pieceratemaster/PieceRateMaster'
+import RegularizationMaster from './pages/hrmaster/regularizationmaster/RegularizationMaster'
 
 
 const PrivateRoute = ({ children }) => {
@@ -77,6 +87,16 @@ const App = () => {
           <Route path="hrmaster/designationmaster" element={<DesignationMaster />} />
           <Route path="hrmaster/employeemaster" element={<EmployeeMaster />} />
           <Route path="hrmaster/leavetypemaster" element={<LeaveTypeMaster />} />
+           <Route path="hrmaster/shiftmaster" element={<ShiftMaster />} />
+            <Route path="hrmaster/medicalmaster" element={<MedicalRecordMaster />} />
+             <Route path="hrmaster/accidentmaster" element={<AccidentMaster />} />
+              <Route path="hrmaster/requisitionmaster" element={<RequisitionMaster />} />
+              <Route path="hrmaster/jobopeningmaster" element={<JobOpeningMaster />} />
+              <Route path="hrmaster/candidatemaster" element={<CandidateMaster />} />
+               <Route path="hrmaster/salarymaster" element={<SalaryMaster />} />
+                 <Route path="hrmaster/pieceratemaster" element={<PieceRateMaster />} />
+                  <Route path="hrmaster/regularizationmaster" element={<RegularizationMaster />} />
+               <Route path="hrmaster/interviewmaster" element={<InterviewMaster />} />
           <Route path="roles" element={<Roles />} />
 
           <Route path='hrmaster/employeeleavemaster' element={<EmployeeLeaveMaster/>} />

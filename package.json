@@ -17,12 +17,15 @@
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.4",
     "chart.js": "^4.5.1",
+    "date-fns": "^4.1.0",
     "html2pdf": "^0.0.11",
     "html2pdf.js": "^0.14.0",
     "lucide-react": "^0.563.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-dropzone": "^15.0.0",
     "react-router-dom": "^7.13.0",
+    "react-signature-canvas": "^1.1.0-alpha.2",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {

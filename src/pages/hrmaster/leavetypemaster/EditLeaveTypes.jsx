@@ -40,7 +40,9 @@ const EditLeaveTypes = ({ open, onClose, leaveType, onUpdate }) => {
     const { name, value, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'IsActive' ? checked : name === 'MaxDaysPerYear' ? parseInt(value) || '' : value
+      [name]: name === 'IsActive' ? checked : 
+               name === 'MaxDaysPerYear' ? parseInt(value) || '' : 
+               value
     }));
   };
 
@@ -66,7 +68,14 @@ const EditLeaveTypes = ({ open, onClose, leaveType, onUpdate }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${BASE_URL}/api/leavetypes/${leaveType._id}`, formData, {
+      
+      // Prepare data - ensure MaxDaysPerYear is a number
+      const submitData = {
+        ...formData,
+        MaxDaysPerYear: parseInt(formData.MaxDaysPerYear)
+      };
+
+      const response = await axios.put(`${BASE_URL}/api/leavetypes/${leaveType._id}`, submitData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -74,23 +83,38 @@ const EditLeaveTypes = ({ open, onClose, leaveType, onUpdate }) => {
       });
 
       if (response.data.success) {
-        onUpdate(response.data.data);
-        onClose();
+        if (onUpdate && typeof onUpdate === 'function') {
+          onUpdate(response.data.data);
+        }
+        onClose(true); // Pass true to indicate success
       } else {
         setError(response.data.message || 'Failed to update leave type');
       }
     } catch (err) {
       console.error('Error updating leave type:', err);
-      setError(err.response?.data?.message || 'Failed to update leave type. Please try again.');
+      
+      if (err.response) {
+        setError(err.response.data?.message || 
+                err.response.data?.error || 
+                `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        setError('No response from server. Please check your connection.');
+      } else {
+        setError('Error setting up request. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClose = () => {
+    onClose(false); // Pass false when cancelled
+  };
+
   return (
     <Dialog 
       open={open} 
-      onClose={onClose} 
+      onClose={handleClose} 
       maxWidth="sm" 
       fullWidth
       PaperProps={{
@@ -217,7 +241,7 @@ const EditLeaveTypes = ({ open, onClose, leaveType, onUpdate }) => {
         backgroundColor: '#F8FAFC'
       }}>
         <Button 
-          onClick={onClose} 
+          onClick={handleClose} 
           disabled={loading}
           sx={{
             borderRadius: 1,

@@ -89,37 +89,58 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
       );
 
       if (response.data.success) {
-        onUpdate(response.data.data);
-        onClose();
+        if (onUpdate && typeof onUpdate === 'function') {
+          onUpdate(response.data.data);
+        }
+        onClose(true); // Pass true to indicate success
       } else {
         setError(response.data.message || 'Failed to update holiday');
       }
     } catch (err) {
       console.error('Error updating holiday:', err);
-      setError(
-        err.response?.data?.message ||
-          'Failed to update holiday. Please try again.'
-      );
+      
+      if (err.response) {
+        setError(err.response.data?.message || 
+                err.response.data?.error || 
+                `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        setError('No response from server. Please check your connection.');
+      } else {
+        setError('Error setting up request. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClose = () => {
+    onClose(false); // Pass false when cancelled
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog 
+      open={open} 
+      onClose={handleClose} 
+      maxWidth="sm" 
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2 }
+      }}
+    >
       <DialogTitle
         sx={{
           borderBottom: '1px solid #E0E0E0',
           backgroundColor: '#F8FAFC',
           fontSize: '20px',
-          fontWeight: 600
+          fontWeight: 600,
+          pb: 2
         }}
       >
         Edit Holiday
       </DialogTitle>
 
       <DialogContent sx={{ pt: 3 }}>
-        <Stack spacing={3} mt={1}>
+        <Stack spacing={3} sx={{ mt: 2 }}>
           <TextField
             fullWidth
             label="Holiday Name"
@@ -128,6 +149,8 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
             onChange={handleChange}
             required
             disabled={loading}
+            error={!!error && error.includes('Holiday name')}
+            helperText={error && error.includes('Holiday name') ? error : ''}
           />
 
           <TextField
@@ -140,6 +163,8 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
             required
             InputLabelProps={{ shrink: true }}
             disabled={loading}
+            error={!!error && error.includes('date')}
+            helperText={error && error.includes('date') ? error : ''}
           />
 
           <TextField
@@ -151,10 +176,13 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
             onChange={handleChange}
             required
             disabled={loading}
+            error={!!error && error.includes('type')}
+            helperText={error && error.includes('type') ? error : ''}
           >
             <MenuItem value="National">National</MenuItem>
-            <MenuItem value="Optional">Optional</MenuItem>
+            <MenuItem value="Festival">Festival</MenuItem>
             <MenuItem value="Company">Company</MenuItem>
+            <MenuItem value="Optional">Optional</MenuItem>
           </TextField>
 
           <TextField
@@ -202,7 +230,9 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
             label="Active"
           />
 
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && !error.includes('Holiday name') && !error.includes('date') && !error.includes('type') && (
+            <Alert severity="error">{error}</Alert>
+          )}
         </Stack>
       </DialogContent>
 
@@ -211,10 +241,21 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
           px: 3,
           pb: 3,
           borderTop: '1px solid #E0E0E0',
+          pt: 2,
           backgroundColor: '#F8FAFC'
         }}
       >
-        <Button onClick={onClose} disabled={loading}>
+        <Button 
+          onClick={handleClose} 
+          disabled={loading}
+          sx={{
+            borderRadius: 1,
+            px: 3,
+            py: 1,
+            textTransform: 'none',
+            fontWeight: 500
+          }}
+        >
           Cancel
         </Button>
 
@@ -223,6 +264,17 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
           onClick={handleSubmit}
           disabled={loading}
           startIcon={loading ? null : <EditIcon />}
+          sx={{
+            borderRadius: 1,
+            px: 3,
+            py: 1,
+            textTransform: 'none',
+            fontWeight: 500,
+            backgroundColor: '#1976D2',
+            '&:hover': {
+              backgroundColor: '#1565C0'
+            }
+          }}
         >
           {loading ? 'Updating...' : 'Update Holiday'}
         </Button>

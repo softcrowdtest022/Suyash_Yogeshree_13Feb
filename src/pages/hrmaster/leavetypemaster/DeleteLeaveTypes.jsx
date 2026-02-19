@@ -33,23 +33,38 @@ const DeleteLeaveTypes = ({ open, onClose, leaveType, onDelete }) => {
       });
 
       if (response.data.success) {
-        onDelete(leaveType._id);
-        onClose();
+        if (onDelete && typeof onDelete === 'function') {
+          onDelete(leaveType._id);
+        }
+        onClose(true); // Pass true to indicate success
       } else {
         setError(response.data.message || 'Failed to delete leave type');
       }
     } catch (err) {
       console.error('Error deleting leave type:', err);
-      setError(err.response?.data?.message || 'Failed to delete leave type. Please try again.');
+      
+      if (err.response) {
+        setError(err.response.data?.message || 
+                err.response.data?.error || 
+                `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        setError('No response from server. Please check your connection.');
+      } else {
+        setError('Error setting up request. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleClose = () => {
+    onClose(false); // Pass false when cancelled
+  };
+
   return (
     <Dialog 
       open={open} 
-      onClose={onClose} 
+      onClose={handleClose} 
       maxWidth="sm" 
       fullWidth
       PaperProps={{
@@ -67,7 +82,7 @@ const DeleteLeaveTypes = ({ open, onClose, leaveType, onDelete }) => {
           color: '#101010',
           paddingTop: '8px'
         }}>
-          Confirm Delete
+          Confirm Delete Leave Type
         </div>
       </DialogTitle>
       
@@ -75,14 +90,13 @@ const DeleteLeaveTypes = ({ open, onClose, leaveType, onDelete }) => {
         {/* Add padding from top */}
         <div style={{ marginTop: '16px' }}>
           <Stack spacing={2} sx={{ mb: 3 }}>
-            <Typography variant="h6" fontWeight={600}>
+            <Typography variant="h6" fontWeight={600} color="error.main">
               {leaveType?.Name}
             </Typography>
             
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row" spacing={2} flexWrap="wrap" gap={1}>
               <Chip
-                label={`${leaveType?.MaxDaysPerYear} days/year`}
-                color="primary"
+                label={`${leaveType?.MaxDaysPerYear || 0} days/year`}
                 sx={{ 
                   fontWeight: 500,
                   backgroundColor: '#E3F2FD',
@@ -108,8 +122,8 @@ const DeleteLeaveTypes = ({ open, onClose, leaveType, onDelete }) => {
             </Stack>
             
             {leaveType?.Description && (
-              <Typography variant="body2" color="textSecondary">
-                {leaveType.Description}
+              <Typography variant="body2" color="text.secondary">
+                <strong>Description:</strong> {leaveType.Description}
               </Typography>
             )}
           </Stack>
@@ -117,6 +131,7 @@ const DeleteLeaveTypes = ({ open, onClose, leaveType, onDelete }) => {
           <Typography variant="body1" sx={{ mb: 2, fontSize: '0.875rem' }}>
             Are you sure you want to delete this leave type?
           </Typography>
+          
           <Typography variant="body2" color="error" sx={{ fontSize: '0.875rem', fontWeight: 500 }}>
             ⚠️ This action cannot be undone. All leave records associated with this type will be affected.
           </Typography>
@@ -146,7 +161,7 @@ const DeleteLeaveTypes = ({ open, onClose, leaveType, onDelete }) => {
         backgroundColor: '#F8FAFC'
       }}>
         <Button 
-          onClick={onClose} 
+          onClick={handleClose} 
           disabled={loading}
           sx={{
             borderRadius: 1,

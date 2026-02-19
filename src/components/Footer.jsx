@@ -133,7 +133,7 @@ const Footer = () => {
               </div>
               <div>
                 <p className="text-cyan-100/80 text-sm">Call us</p>
-                <p className="text-white font-medium text-lg">+1 (555) 123-4567</p>
+                <p className="text-white font-medium text-lg">+91 74474 78744</p>
               </div>
             </div>
             
@@ -145,7 +145,7 @@ const Footer = () => {
               </div>
               <div>
                 <p className="text-cyan-100/80 text-sm">Email us</p>
-                <p className="text-white font-medium text-lg">support@yourlogo.com</p>
+                <p className="text-white font-medium text-lg">contact@exilancesoftware.com</p>
               </div>
             </div>
             
@@ -158,7 +158,7 @@ const Footer = () => {
               </div>
               <div>
                 <p className="text-cyan-100/80 text-sm">Visit us</p>
-                <p className="text-white font-medium text-lg">123 Business Ave, City</p>
+                <p className="text-white font-medium text-lg">Nashik | Maharashtra | India</p>
               </div>
             </div>
           </div>
@@ -172,7 +172,7 @@ const Footer = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               <p className="text-cyan-100/70 text-sm">
-                © {new Date().getFullYear()} Your Company. All rights reserved.
+                © {new Date().getFullYear()} Suyash Enterprises. All rights reserved.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-4 md:gap-6">

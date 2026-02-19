@@ -1,5 +1,3 @@
-// MasterLeaveHoliday.jsx
-
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -124,7 +122,7 @@ const LeaveTypeMaster = () => {
     const filtered = dataList.filter((item) =>
       mode === "leave"
         ? item.Name?.toLowerCase().includes(value)
-        : item.Title?.toLowerCase().includes(value)
+        : (item.Title || item.Name)?.toLowerCase().includes(value)
     );
 
     setFilteredList(filtered);
@@ -135,10 +133,13 @@ const LeaveTypeMaster = () => {
   const handleSort = () => {
     const sorted = [...filteredList].sort((a, b) => {
       const field = mode === "leave" ? "Name" : "Title";
+      const aValue = field === "Title" ? (a.Title || a.Name || "") : (a[field] || "");
+      const bValue = field === "Title" ? (b.Title || b.Name || "") : (b[field] || "");
+      
       if (sortOrder === "asc") {
-        return a[field]?.localeCompare(b[field]);
+        return aValue.localeCompare(bValue);
       } else {
-        return b[field]?.localeCompare(a[field]);
+        return bValue.localeCompare(aValue);
       }
     });
 
@@ -150,6 +151,14 @@ const LeaveTypeMaster = () => {
   const handleFilterActive = () => {
     const filtered = dataList.filter((item) => item.IsActive);
     setFilteredList(filtered);
+    setPage(0);
+  };
+
+  /* RESET FILTER */
+  const handleResetFilter = () => {
+    setFilteredList(dataList);
+    setSearchTerm("");
+    setPage(0);
   };
 
   /* PAGINATION */
@@ -200,6 +209,11 @@ const LeaveTypeMaster = () => {
     }
   };
 
+  const handleViewClose = () => {
+    setOpenView(false);
+    setSelectedItem(null);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       {/* TOGGLE */}
@@ -228,8 +242,8 @@ const LeaveTypeMaster = () => {
 
       {/* ACTION BAR */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction="row" spacing={2} justifyContent="space-between">
-          <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} justifyContent="space-between" flexWrap="wrap">
+          <Stack direction="row" spacing={2} flexWrap="wrap">
             <TextField
               placeholder="Search..."
               size="small"
@@ -260,6 +274,15 @@ const LeaveTypeMaster = () => {
             >
               Sort {sortOrder === "asc" ? "A-Z" : "Z-A"}
             </Button>
+
+            {(searchTerm || filteredList.length !== dataList.length) && (
+              <Button
+                variant="text"
+                onClick={handleResetFilter}
+              >
+                Clear Filters
+              </Button>
+            )}
           </Stack>
 
           <Stack direction="row" spacing={2}>
@@ -299,39 +322,47 @@ const LeaveTypeMaster = () => {
             </TableHead>
 
             <TableBody>
-              {paginated.map((item) => (
-                <TableRow key={item._id}>
-                  <TableCell>
-                    {mode === "leave"
-                      ? item.Name
-                      : item.Title || item.Name}
-                  </TableCell>
+              {paginated.length > 0 ? (
+                paginated.map((item) => (
+                  <TableRow key={item._id}>
+                    <TableCell>
+                      {mode === "leave"
+                        ? item.Name
+                        : item.Title || item.Name}
+                    </TableCell>
 
-                  <TableCell>
-                    {mode === "leave"
-                      ? item.MaxDaysPerYear
-                      : item.Date
-                      ? new Date(item.Date).toLocaleDateString()
-                      : "-"}
-                  </TableCell>
+                    <TableCell>
+                      {mode === "leave"
+                        ? item.MaxDaysPerYear
+                        : item.Date
+                        ? new Date(item.Date).toLocaleDateString()
+                        : "-"}
+                    </TableCell>
 
-                  <TableCell>
-                    <Chip
-                      label={item.IsActive ? "Active" : "Inactive"}
-                      color={item.IsActive ? "success" : "default"}
-                      size="small"
-                    />
-                  </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={item.IsActive ? "Active" : "Inactive"}
+                        color={item.IsActive ? "success" : "default"}
+                        size="small"
+                      />
+                    </TableCell>
 
-                  <TableCell align="center">
-                    <IconButton
-                      onClick={(e) => handleActionOpen(e, item)}
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
+                    <TableCell align="center">
+                      <IconButton
+                        onClick={(e) => handleActionOpen(e, item)}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
+                    No {mode === "leave" ? "leave types" : "holidays"} found
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -394,7 +425,7 @@ const LeaveTypeMaster = () => {
         <>
           <AddLeaveTypes open={openAdd} onClose={handleAddClose} />
           <EditLeaveTypes open={openEdit} leaveType={selectedItem} onClose={handleEditClose} />
-          <ViewLeaveTypes open={openView} leaveType={selectedItem} onClose={() => setOpenView(false)} />
+          <ViewLeaveTypes open={openView} leaveType={selectedItem} onClose={handleViewClose} />
           <DeleteLeaveTypes open={openDelete} leaveType={selectedItem} onClose={handleDeleteClose} />
         </>
       )}
@@ -403,7 +434,7 @@ const LeaveTypeMaster = () => {
         <>
           <AddHoliday open={openAdd} onClose={handleAddClose} />
           <EditHoliday open={openEdit} holiday={selectedItem} onClose={handleEditClose} />
-          <ViewHoliday open={openView} holiday={selectedItem} onClose={() => setOpenView(false)} />
+          <ViewHoliday open={openView} holiday={selectedItem} onClose={handleViewClose} />
           <DeleteHoliday open={openDelete} holiday={selectedItem} onClose={handleDeleteClose} />
         </>
       )}
@@ -413,8 +444,9 @@ const LeaveTypeMaster = () => {
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert severity={snackbar.severity} variant="filled">
+        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
