@@ -135,119 +135,202 @@ const ApproveOffer = ({ open, onClose, onComplete, offerData = null }) => {
   useEffect(() => {
     if (open) {
       console.log('Dialog opened, fetching pending offers...');
-      setResponseData(null);
-      setActiveStep(0);
-      setComments('');
-      setSignature(null);
-      setSignatureName('');
-      setConfirmApprove(false);
-      setSelectedOffer(null);
-      setOfferDetails(null);
+      resetState();
+      fetchPendingOffers();
+    }
+  }, [open]);
 
-      // If we have offer data, fetch details for that specific offer
-      if (offerData) {
-        if (offerData.id || offerData._id) {
-          fetchOfferDetails(offerData.id || offerData._id);
-        } else {
-          fetchPendingOffers();
+  // Handle offerData prop separately
+  useEffect(() => {
+    if (offerData && open) {
+      console.log('offerData received in ApproveOffer:', offerData);
+      
+      // Check if offerData contains an offer ID directly
+      if (offerData.offerId || offerData._id || offerData.id) {
+        const offerId = offerData.offerId || offerData._id || offerData.id;
+        console.log('Fetching offer details for ID:', offerId);
+        fetchOfferDetails(offerId);
+      } else if (offerData.candidateId) {
+        // If we have candidate data but no offer ID, we need to fetch offers for this candidate
+        console.log('Candidate data received, will need to select from offers');
+      }
+    }
+  }, [offerData, open]);
+
+  const resetState = () => {
+    setActiveStep(0);
+    setComments('');
+    setSignature(null);
+    setSignatureName('');
+    setConfirmApprove(false);
+    setSelectedOffer(null);
+    setOfferDetails(null);
+    setCandidateInfo(null);
+    setError('');
+    setSuccess('');
+    setResponseData(null);
+    setStepErrors({});
+  };
+
+  const fetchPendingOffers = async () => {
+    setFetchingOffers(true);
+    setError('');
+    try {
+      const token = getAuthToken();
+      console.log('Fetching pending offers...');
+      
+      const response = await axios.get(`${BASE_URL}/api/offers?status=pending_approval`, {
+        headers: { 
+          Authorization: token ? `Bearer ${token}` : '' 
+        }
+      });
+      
+      console.log('API Response:', response.data);
+      
+      if (response.data.success) {
+        let offersArray = [];
+        
+        // Try different possible paths to find the offers array
+        if (response.data.data?.offers && Array.isArray(response.data.data.offers)) {
+          offersArray = response.data.data.offers;
+          console.log('Found offers at data.data.offers');
+        } 
+        else if (response.data.data && Array.isArray(response.data.data)) {
+          offersArray = response.data.data;
+          console.log('Found offers at data.data (direct array)');
+        }
+        else if (response.data.offers && Array.isArray(response.data.offers)) {
+          offersArray = response.data.offers;
+          console.log('Found offers at data.offers');
+        }
+        
+        setOffers(offersArray);
+        console.log(`Set ${offersArray.length} offers to state`);
+
+        // If we have offerData with a specific offer ID, try to select it
+        if (offerData && (offerData.offerId || offerData._id || offerData.id)) {
+          const targetOfferId = offerData.offerId || offerData._id || offerData.id;
+          const matchingOffer = offersArray.find(o => 
+            o._id === targetOfferId || o.id === targetOfferId || o.offerId === targetOfferId
+          );
+          
+          if (matchingOffer) {
+            console.log('Auto-selecting matching offer:', matchingOffer);
+            handleOfferSelect(matchingOffer);
+          }
         }
       } else {
-        fetchPendingOffers();
+        setOffers([]);
       }
+    } catch (err) {
+      console.error('Error fetching offers:', err);
+      setError('Failed to fetch pending offers');
+      setOffers([]);
+    } finally {
+      setFetchingOffers(false);
     }
-  }, [open, offerData]);
-
- const fetchPendingOffers = async () => {
-  setFetchingOffers(true);
+  };
+const fetchOfferDetails = async (offerId) => {
+  setLoading(true);
+  setError('');
   try {
     const token = getAuthToken();
-    console.log('Fetching pending offers...');
     
-    const response = await axios.get(`${BASE_URL}/api/offers?status=pending_approval`, {
-      headers: { 
-        Authorization: token ? `Bearer ${token}` : '' 
+    // Try using axios with params to avoid URL path issues
+    const apiUrl = `${BASE_URL}/api/offers`;
+    console.log('Fetching offer details with params for ID:', offerId);
+    
+    const response = await axios.get(apiUrl, {
+      params: {
+        id: offerId
+      },
+      headers: {
+        Authorization: token ? `Bearer ${token}` : ''
       }
     });
-    
-    console.log('API Response:', response.data);
-    
+
+    console.log('Offer details response:', response.data);
+
     if (response.data.success) {
-      let offersArray = [];
+      // If the API returns an array of offers, find the matching one
+      let offerData = response.data.data;
       
-      // Try different possible paths to find the offers array
-      if (response.data.data?.offers && Array.isArray(response.data.data.offers)) {
-        // Path 1: response.data.data.offers (from your console output)
-        offersArray = response.data.data.offers;
-        console.log('Found offers at data.data.offers');
-      } 
-      else if (response.data.data && Array.isArray(response.data.data)) {
-        // Path 2: response.data.data is directly an array
-        offersArray = response.data.data;
-        console.log('Found offers at data.data (direct array)');
-      }
-      else if (response.data.offers && Array.isArray(response.data.offers)) {
-        // Path 3: response.data.offers
-        offersArray = response.data.offers;
-        console.log('Found offers at data.offers');
+      // Handle different response structures
+      if (Array.isArray(offerData)) {
+        offerData = offerData.find(o => o._id === offerId || o.id === offerId);
+      } else if (offerData?.offers && Array.isArray(offerData.offers)) {
+        offerData = offerData.offers.find(o => o._id === offerId || o.id === offerId);
       }
       
-      setOffers(offersArray);
-      console.log(`Set ${offersArray.length} offers to state`);
+      if (offerData) {
+        setOfferDetails({ success: true, data: offerData });
+        setSelectedOffer(offerData);
+        
+        // Extract candidate info
+        if (offerData.candidateId) {
+          setCandidateInfo(offerData.candidateId);
+        }
+      } else {
+        setError('Offer not found in response');
+      }
     } else {
-      setOffers([]);
+      setError('Failed to fetch offer details');
     }
   } catch (err) {
-    console.error('Error fetching offers:', err);
-    setError('Failed to fetch pending offers');
-    setOffers([]);
+    console.error('Error fetching offer details:', err);
+    
+    if (err.response?.status === 404) {
+      setError(`Offer not found with ID: ${offerId}`);
+    } else {
+      setError(err.response?.data?.message || 'Failed to fetch offer details');
+    }
   } finally {
-    setFetchingOffers(false);
+    setLoading(false);
   }
 };
 
-  const fetchOfferDetails = async (offerId) => {
-    setLoading(true);
-    try {
-      const token = getAuthToken();
-      console.log('Fetching offer details for ID:', offerId);
-
-      const response = await axios.get(`${BASE_URL}/api/offers/${offerId}`, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : ''
-        }
-      });
-
-      console.log('Offer details response:', response.data);
-
-      if (response.data.success) {
-        setOfferDetails(response.data);
-        setSelectedOffer(response.data.data);
-
-        // Extract candidate info from the response
-        if (response.data.data?.candidateId) {
-          setCandidateInfo(response.data.data.candidateId);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching offer details:', err);
-      setError('Failed to fetch offer details');
-    } finally {
-      setLoading(false);
+ const handleOfferSelect = (offer) => {
+  console.log('Selected offer:', offer);
+  console.log('Offer ID type:', typeof offer._id);
+  console.log('Offer ID value:', offer._id);
+  console.log('Offer ID length:', offer._id?.length);
+  
+  setSelectedOffer(offer);
+  
+  // Extract candidate info directly from the offer if available
+  if (offer.candidateId) {
+    if (typeof offer.candidateId === 'object') {
+      setCandidateInfo(offer.candidateId);
+    } else {
+      // If candidateId is just an ID, we might need to fetch candidate details separately
+      console.log('Candidate ID reference:', offer.candidateId);
     }
-  };
+  }
+  
+  // Make sure we're passing the full ID without any modification
+  const fullOfferId = offer._id || offer.id;
+  if (fullOfferId) {
+    console.log('Full offer ID to fetch:', fullOfferId);
+    fetchOfferDetails(fullOfferId);
+  } else {
+    setError('Invalid offer ID');
+  }
+};
 
-  const handleOfferSelect = (offer) => {
-    setSelectedOffer(offer);
-    fetchOfferDetails(offer._id || offer.id);
-  };
-
-  const handleOfferChange = (e) => {
-    const offerId = e.target.value;
-    const offer = offers.find(o => (o._id === offerId || o.id === offerId));
-    if (offer) {
-      handleOfferSelect(offer);
-    }
-  };
+ const handleOfferChange = (e) => {
+  const offerId = e.target.value;
+  console.log('Selected offer ID from dropdown:', offerId);
+  console.log('Selected offer ID length:', offerId?.length);
+  
+  const offer = offers.find(o => (o._id === offerId || o.id === offerId));
+  if (offer) {
+    console.log('Found matching offer:', offer);
+    handleOfferSelect(offer);
+  } else {
+    console.log('No matching offer found for ID:', offerId);
+    setError('Selected offer not found in the list');
+  }
+};
 
   // Handle signature upload
   const handleSignatureUpload = (event) => {
@@ -309,19 +392,7 @@ const ApproveOffer = ({ open, onClose, onComplete, offerData = null }) => {
   };
 
   const handleClose = () => {
-    setActiveStep(0);
-    setComments('');
-    setSignature(null);
-    setSignatureName('');
-    setConfirmApprove(false);
-    setError('');
-    setSuccess('');
-    setResponseData(null);
-    setStepErrors({});
-    setOfferDetails(null);
-    setSelectedOffer(null);
-    setCandidateInfo(null);
-    setOffers([]);
+    resetState();
     onClose();
   };
 
@@ -444,88 +515,165 @@ const ApproveOffer = ({ open, onClose, onComplete, offerData = null }) => {
   };
 
   // Get data from offer details
-  const getOfferValue = (path, defaultValue = 'N/A') => {
-    if (!offerDetails?.data) return defaultValue;
-
-    const keys = path.split('.');
-    let value = offerDetails.data;
-
-    for (const key of keys) {
-      if (value === null || value === undefined) return defaultValue;
-      value = value[key];
+// Get data from offer details - updated for new response structure
+const getOfferValue = (path, defaultValue = 'N/A') => {
+  if (!offerDetails?.data) {
+    // Try to get from selectedOffer directly
+    if (selectedOffer) {
+      const keys = path.split('.');
+      let value = selectedOffer;
+      for (const key of keys) {
+        if (value === null || value === undefined) return defaultValue;
+        value = value[key];
+      }
+      return value !== null && value !== undefined ? value : defaultValue;
     }
+    return defaultValue;
+  }
 
-    return value !== null && value !== undefined ? value : defaultValue;
-  };
+  // Handle the case where data is an array of offers
+  if (Array.isArray(offerDetails.data)) {
+    const matchingOffer = offerDetails.data.find(o => o._id === selectedOffer?._id);
+    if (matchingOffer) {
+      const keys = path.split('.');
+      let value = matchingOffer;
+      for (const key of keys) {
+        if (value === null || value === undefined) return defaultValue;
+        value = value[key];
+      }
+      return value !== null && value !== undefined ? value : defaultValue;
+    }
+    return defaultValue;
+  }
+  
+  // Handle the case where data has offers array
+  if (offerDetails.data?.offers && Array.isArray(offerDetails.data.offers)) {
+    const matchingOffer = offerDetails.data.offers.find(o => o._id === selectedOffer?._id);
+    if (matchingOffer) {
+      const keys = path.split('.');
+      let value = matchingOffer;
+      for (const key of keys) {
+        if (value === null || value === undefined) return defaultValue;
+        value = value[key];
+      }
+      return value !== null && value !== undefined ? value : defaultValue;
+    }
+    return defaultValue;
+  }
+  
+  // Direct data object
+  const keys = path.split('.');
+  let value = offerDetails.data;
+  for (const key of keys) {
+    if (value === null || value === undefined) return defaultValue;
+    value = value[key];
+  }
+  return value !== null && value !== undefined ? value : defaultValue;
+};
 
-  // Get candidate information
-  const getCandidateName = () => {
-    if (candidateInfo) {
-      if (candidateInfo.name) return candidateInfo.name;
-      if (candidateInfo.firstName) {
-        return `${candidateInfo.firstName} ${candidateInfo.lastName || ''}`.trim();
+// Get candidate information - updated for new structure
+const getCandidateName = () => {
+  // Check candidateInfo state first
+  if (candidateInfo) {
+    if (candidateInfo.name) return candidateInfo.name;
+    if (candidateInfo.firstName) {
+      return `${candidateInfo.firstName} ${candidateInfo.lastName || ''}`.trim();
+    }
+  }
+
+  // Check selectedOffer for candidate object
+  if (selectedOffer?.candidate) {
+    if (selectedOffer.candidate.name) return selectedOffer.candidate.name;
+    if (selectedOffer.candidate.firstName) {
+      return `${selectedOffer.candidate.firstName} ${selectedOffer.candidate.lastName || ''}`.trim();
+    }
+  }
+
+  // Try to get from offerDetails
+  if (offerDetails?.data) {
+    let offerData = offerDetails.data;
+    
+    // Handle array case
+    if (Array.isArray(offerData)) {
+      const matchingOffer = offerData.find(o => o._id === selectedOffer?._id);
+      if (matchingOffer?.candidate) {
+        if (matchingOffer.candidate.name) return matchingOffer.candidate.name;
+        if (matchingOffer.candidate.firstName) {
+          return `${matchingOffer.candidate.firstName} ${matchingOffer.candidate.lastName || ''}`.trim();
+        }
       }
     }
-
-    const candidateFromOffer = getOfferValue('candidateId');
-    if (candidateFromOffer) {
-      if (candidateFromOffer.name) return candidateFromOffer.name;
-      if (candidateFromOffer.firstName) {
-        return `${candidateFromOffer.firstName} ${candidateFromOffer.lastName || ''}`.trim();
+    
+    // Handle offers array case
+    if (offerData?.offers && Array.isArray(offerData.offers)) {
+      const matchingOffer = offerData.offers.find(o => o._id === selectedOffer?._id);
+      if (matchingOffer?.candidate) {
+        if (matchingOffer.candidate.name) return matchingOffer.candidate.name;
+        if (matchingOffer.candidate.firstName) {
+          return `${matchingOffer.candidate.firstName} ${matchingOffer.candidate.lastName || ''}`.trim();
+        }
       }
     }
+  }
 
-    return 'Candidate Name';
-  };
+  return 'Candidate Name';
+};
 
-  const getCandidateId = () => {
-    if (candidateInfo?.candidateId) return candidateInfo.candidateId;
-    if (candidateInfo?.employeeId) return candidateInfo.employeeId;
-    const candidateFromOffer = getOfferValue('candidateId');
-    return candidateFromOffer?.candidateId || 'CAN-XXX';
-  };
+const getCandidateId = () => {
+  // Check candidateInfo state first
+  if (candidateInfo?.candidateId) return candidateInfo.candidateId;
+  if (candidateInfo?.candidateID) return candidateInfo.candidateID;
+  if (candidateInfo?._id) return candidateInfo._id;
+  
+  // Check selectedOffer for candidate object
+  if (selectedOffer?.candidate) {
+    return selectedOffer.candidate.candidateId || 
+           selectedOffer.candidate.candidateID || 
+           selectedOffer.candidate._id || 
+           'CAN-XXX';
+  }
 
-  const getCandidateEmail = () => {
-    if (candidateInfo?.email) return candidateInfo.email;
-    const candidateFromOffer = getOfferValue('candidateId');
-    return candidateFromOffer?.email || '';
-  };
+  return 'CAN-XXX';
+};
 
-  const getCandidatePhone = () => {
-    if (candidateInfo?.phone) return candidateInfo.phone;
-    if (candidateInfo?.mobile) return candidateInfo.mobile;
-    const candidateFromOffer = getOfferValue('candidateId');
-    return candidateFromOffer?.phone || candidateFromOffer?.mobile || '';
-  };
+const getCandidateEmail = () => {
+  if (candidateInfo?.email) return candidateInfo.email;
+  if (selectedOffer?.candidate?.email) return selectedOffer.candidate.email;
+  return '';
+};
 
-  const getPosition = () => {
-    if (candidateInfo?.position) return candidateInfo.position;
-    if (candidateInfo?.latestApplication?.jobId?.title) {
-      return candidateInfo.latestApplication.jobId.title;
-    }
-    const candidateFromOffer = getOfferValue('candidateId');
-    if (candidateFromOffer?.position) return candidateFromOffer.position;
-    if (candidateFromOffer?.latestApplication?.jobId?.title) {
-      return candidateFromOffer.latestApplication.jobId.title;
-    }
-    return getOfferValue('position') || 'Software Engineer';
-  };
+const getCandidatePhone = () => {
+  if (candidateInfo?.phone) return candidateInfo.phone;
+  if (candidateInfo?.mobile) return candidateInfo.mobile;
+  if (selectedOffer?.candidate?.phone) return selectedOffer.candidate.phone;
+  if (selectedOffer?.candidate?.mobile) return selectedOffer.candidate.mobile;
+  return '';
+};
 
-  const getJoiningDate = () => {
-    return getOfferValue('joiningDate') || null;
-  };
+const getPosition = () => {
+  if (candidateInfo?.position) return candidateInfo.position;
+  if (selectedOffer?.job?.title) return selectedOffer.job.title;
+  if (selectedOffer?.offerDetails?.designation) return selectedOffer.offerDetails.designation;
+  return 'Not Specified';
+};
 
-  const getReportingTo = () => {
-    return getOfferValue('reportingTo') || 'Not Specified';
-  };
+const getJoiningDate = () => {
+  return selectedOffer?.joiningDate || null;
+};
 
-  const getProbationPeriod = () => {
-    return getOfferValue('probationPeriod') || 6;
-  };
+const getReportingTo = () => {
+  return selectedOffer?.reportingTo || 'Not Specified';
+};
 
-  const getCtcDetails = () => {
-    return getOfferValue('ctcDetails') || null;
-  };
+const getProbationPeriod = () => {
+  return selectedOffer?.probationPeriod || 6;
+};
+
+const getCtcDetails = () => {
+  if (selectedOffer?.ctcDetails) return selectedOffer.ctcDetails;
+  return null;
+};
+
 
   // Render success response data
   const renderResponseData = () => {
@@ -612,38 +760,23 @@ const ApproveOffer = ({ open, onClose, onComplete, offerData = null }) => {
                       label="Select Offer *"
                       error={!!stepErrors.offer}
                     >
-                      // In renderStepContent at step 0, replace the offers.map section with:
-                      {Array.isArray(offers) && offers.length > 0 ? (
-                        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                          <InputLabel>Select Offer *</InputLabel>
-                          <Select
-                            value={selectedOffer?._id || selectedOffer?.id || ''}
-                            onChange={handleOfferChange}
-                            label="Select Offer *"
-                            error={!!stepErrors.offer}
-                          >
-                            {offers.map((offer) => {
-                              const candidateName = offer.candidateId?.name ||
-                                `${offer.candidateId?.firstName || ''} ${offer.candidateId?.lastName || ''}`.trim() ||
-                                'Unknown Candidate';
-                              return (
-                                <MenuItem key={offer._id || offer.id} value={offer._id || offer.id}>
-                                  {candidateName} - {offer.offerId || offer._id} ({offer.status})
-                                </MenuItem>
-                              );
-                            })}
-                          </Select>
-                          {stepErrors.offer && (
-                            <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                              {stepErrors.offer}
-                            </Typography>
-                          )}
-                        </FormControl>
-                      ) : (
-                        <Alert severity="info" sx={{ borderRadius: 1, mb: 2 }}>
-                          No pending offers found for approval.
-                        </Alert>
-                      )}
+                      {offers.map((offer) => {
+                        // Get candidate name from offer
+                        let candidateName = 'Unknown Candidate';
+                        if (offer.candidateId) {
+                          if (typeof offer.candidateId === 'object') {
+                            candidateName = offer.candidateId.name ||
+                              `${offer.candidateId.firstName || ''} ${offer.candidateId.lastName || ''}`.trim() ||
+                              'Unknown Candidate';
+                          }
+                        }
+                        
+                        return (
+                          <MenuItem key={offer._id || offer.id} value={offer._id || offer.id}>
+                            {candidateName} - {offer.offerId || offer._id} ({offer.status || 'pending_approval'})
+                          </MenuItem>
+                        );
+                      })}
                     </Select>
                     {stepErrors.offer && (
                       <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
@@ -653,7 +786,7 @@ const ApproveOffer = ({ open, onClose, onComplete, offerData = null }) => {
                   </FormControl>
                 )}
 
-                {selectedOffer && candidateInfo && (
+                {selectedOffer && (
                   <Box sx={{ p: 1.5, bgcolor: '#F8FAFC', borderRadius: 1 }}>
                     <Grid container spacing={1}>
                       <Grid item xs={6}>
@@ -682,7 +815,7 @@ const ApproveOffer = ({ open, onClose, onComplete, offerData = null }) => {
                         <Typography variant="caption" color="textSecondary" display="block">
                           Phone
                         </Typography>
-                        <Typography variant="body2">{getCandidatePhone()}</Typography>
+                        <Typography variant="body2">{getCandidatePhone() || 'N/A'}</Typography>
                       </Grid>
                       <Grid item xs={6}>
                         <Typography variant="caption" color="textSecondary" display="block">
@@ -695,7 +828,7 @@ const ApproveOffer = ({ open, onClose, onComplete, offerData = null }) => {
                           Offer Status
                         </Typography>
                         <Chip
-                          label={selectedOffer.status || 'Pending'}
+                          label={selectedOffer.status || 'Pending Approval'}
                           color={getStatusColor(selectedOffer.status)}
                           size="small"
                           sx={{ fontWeight: 500 }}
@@ -729,7 +862,7 @@ const ApproveOffer = ({ open, onClose, onComplete, offerData = null }) => {
                         {getCandidateName()}
                       </Typography>
                       <Typography variant="caption" color="textSecondary">
-                        ID: {getCandidateId()} | {getCandidateEmail()} | {getCandidatePhone()}
+                        ID: {getCandidateId()} | {getCandidateEmail()} | {getCandidatePhone() || 'No phone'}
                       </Typography>
                     </Box>
                   </Grid>
