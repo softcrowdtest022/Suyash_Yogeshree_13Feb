@@ -41,6 +41,7 @@ import {
 } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
+import { CheckCircle2Icon, ThumbsDownIcon } from 'lucide-react';
 
 const UpdateCandidateStatus = ({ open, onClose, onUpdate, candidateId, candidateData }) => {
   const [formData, setFormData] = useState({
@@ -55,19 +56,16 @@ const UpdateCandidateStatus = ({ open, onClose, onUpdate, candidateId, candidate
   const [statusHistory, setStatusHistory] = useState([]);
 
   // Status options based on workflow
-  const statusOptions = [
-    { value: 'new', label: 'New', color: '#1976D2', bg: '#E3F2FD', icon: <PendingIcon /> },
-    { value: 'screening', label: 'Screening', color: '#7B1FA2', bg: '#F3E5F5', icon: <PersonIcon /> },
-    { value: 'shortlisted', label: 'Shortlisted', color: '#2E7D32', bg: '#E8F5E8', icon: <ThumbUpIcon /> },
-    { value: 'interview_scheduled', label: 'Interview Scheduled', color: '#F57C00', bg: '#FFF3E0', icon: <ScheduleIcon /> },
-    { value: 'interviewed', label: 'Interviewed', color: '#0288D1', bg: '#E1F5FE', icon: <PersonIcon /> },
-    { value: 'selected', label: 'Selected', color: '#2E7D32', bg: '#E8F5E8', icon: <CheckCircleIcon /> },
-    { value: 'offered', label: 'Offered', color: '#558B2F', bg: '#F1F8E9', icon: <WorkIcon /> },
-    { value: 'accepted', label: 'Accepted', color: '#1B5E20', bg: '#E8F5E8', icon: <CheckCircleIcon /> },
-    { value: 'rejected', label: 'Rejected', color: '#C62828', bg: '#FFEBEE', icon: <ThumbDownIcon /> },
-    { value: 'on_hold', label: 'On Hold', color: '#FF8F00', bg: '#FFF8E1', icon: <PendingIcon /> },
-    { value: 'withdrawn', label: 'Withdrawn', color: '#616161', bg: '#EEEEEE', icon: <CancelIcon /> }
-  ];
+const statusOptions = [
+  { value: 'new', label: 'New', color: '#1976D2', bg: '#E3F2FD', icon: <PendingIcon /> },
+  { value: 'contacted', label: 'Contacted', color: '#7B1FA2', bg: '#F3E5F5', icon: <PersonIcon /> },
+  { value: 'shortlisted', label: 'Shortlisted', color: '#2E7D32', bg: '#E8F5E8', icon: <ThumbUpIcon /> },
+  { value: 'interviewed', label: 'Interviewed', color: '#0288D1', bg: '#E1F5FE', icon: <PersonIcon /> },
+  { value: 'selected', label: 'Selected', color: '#2E7D32', bg: '#E8F5E8', icon: <CheckCircle2Icon /> },
+  { value: 'rejected', label: 'Rejected', color: '#C62828', bg: '#FFEBEE', icon: <ThumbsDownIcon /> },
+  { value: 'onHold', label: 'On Hold', color: '#FF8F00', bg: '#FFF8E1', icon: <PendingIcon /> },
+  { value: 'joined', label: 'Joined', color: '#1B5E20', bg: '#E8F5E8', icon: <CheckCircle2Icon /> }
+];
 
   // Fetch candidate details if not provided
   useEffect(() => {

@@ -155,7 +155,7 @@ const AddHoliday = ({ open, onClose, onAdd }) => {
                         required
                         disabled={loading}
                     />
-
+<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <TextField
                         fullWidth
                         type="date"
@@ -192,7 +192,7 @@ const AddHoliday = ({ open, onClose, onAdd }) => {
                         onChange={handleChange}
                         disabled={loading}
                     />
-
+</Stack>
                     <TextField
                         fullWidth
                         label="Description"
@@ -224,7 +224,7 @@ const AddHoliday = ({ open, onClose, onAdd }) => {
                             label="Recurring Every Year"
                         />
 
-                        <FormControlLabel
+                        {/* <FormControlLabel
                             control={
                                 <Switch
                                     checked={formData.IsActive}
@@ -234,7 +234,7 @@ const AddHoliday = ({ open, onClose, onAdd }) => {
                                 />
                             }
                             label="Active"
-                        />
+                        /> */}
                     </Box>
 
                     {error && <Alert severity="error">{error}</Alert>}

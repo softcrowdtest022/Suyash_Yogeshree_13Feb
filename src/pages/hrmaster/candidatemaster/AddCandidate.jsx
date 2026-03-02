@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -25,7 +25,9 @@ import {
   StepLabel,
   styled,
   StepConnector,
-  Divider
+  Divider,
+  CircularProgress,
+  Autocomplete
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -34,7 +36,8 @@ import {
   School as SchoolIcon,
   Work as WorkIcon,
   Add as AddIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  BusinessCenter as JobIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
@@ -60,8 +63,11 @@ const steps = ["Personal Information", "Address", "Education & Skills", "Experie
 const AddCandidate = ({ open, onClose, onAdd, jobId = '' }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [jobsLoading, setJobsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -97,6 +103,61 @@ const AddCandidate = ({ open, onClose, onAdd, jobId = '' }) => {
   });
 
   const [skillInput, setSkillInput] = useState('');
+
+  // Fetch jobs when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchJobs();
+    }
+  }, [open]);
+
+  // Set selected job if jobId is provided
+  useEffect(() => {
+    if (jobId && jobs.length > 0) {
+      const job = jobs.find(j => j._id === jobId);
+      setSelectedJob(job || null);
+      setFormData(prev => ({
+        ...prev,
+        jobId: jobId
+      }));
+    }
+  }, [jobId, jobs]);
+
+  const fetchJobs = async () => {
+    setJobsLoading(true);
+    setError('');
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${BASE_URL}/api/jobs`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        params: {
+          status: 'published' // Only fetch published jobs, remove this if you want all jobs
+        }
+      });
+
+      if (response.data.success) {
+        setJobs(response.data.data || []);
+      } else {
+        setError('Failed to fetch jobs');
+      }
+    } catch (err) {
+      console.error('Error fetching jobs:', err);
+      setError(err.response?.data?.message || 'Failed to fetch jobs');
+    } finally {
+      setJobsLoading(false);
+    }
+  };
+
+  const handleJobChange = (event, newValue) => {
+    setSelectedJob(newValue);
+    setFormData(prev => ({
+      ...prev,
+      jobId: newValue?._id || ''
+    }));
+  };
 
   // Handle input changes
   const handleInputChange = (e) => {
@@ -332,6 +393,7 @@ const AddCandidate = ({ open, onClose, onAdd, jobId = '' }) => {
       source: 'walkin',
       jobId: jobId
     });
+    setSelectedJob(null);
     setActiveStep(0);
     setError('');
     setSuccess('');
@@ -352,6 +414,91 @@ const AddCandidate = ({ open, onClose, onAdd, jobId = '' }) => {
               <PersonIcon sx={{ mr: 1, verticalAlign: 'middle', color: '#1976D2' }} />
               Personal Information
             </Typography>
+            
+            {/* Job Selection Dropdown */}
+            <Paper sx={{ p: 2, bgcolor: '#F0F7FF', border: '1px solid #BBDEFB', borderRadius: 2 }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <JobIcon sx={{ color: '#1976D2' }} />
+                Apply for Job
+              </Typography>
+              
+              {jobsLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <CircularProgress size={24} />
+                </Box>
+              ) : (
+                <Autocomplete
+                  value={selectedJob}
+                  onChange={handleJobChange}
+                  options={jobs}
+                  getOptionLabel={(option) => `${option.title} (${option.jobId}) - ${option.location}`}
+                  isOptionEqualToValue={(option, value) => option._id === value._id}
+                  loading={jobsLoading}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Select Job (Optional)"
+                      placeholder="Search by job title or ID"
+                      size="small"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {jobsLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <li {...props}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={500}>
+                          {option.title}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {option.jobId} • {option.location} • {option.department}
+                        </Typography>
+                        {option.status === 'published' && (
+                          <Chip
+                            label="Published"
+                            size="small"
+                            color="success"
+                            sx={{ ml: 1, height: 20, fontSize: '0.7rem' }}
+                          />
+                        )}
+                      </Box>
+                    </li>
+                  )}
+                  noOptionsText="No jobs found"
+                />
+              )}
+              
+              {selectedJob && (
+                <Box sx={{ mt: 2, p: 1.5, bgcolor: '#E3F2FD', borderRadius: 1 }}>
+                  <Grid container spacing={1}>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Job ID</Typography>
+                      <Typography variant="body2">{selectedJob.jobId}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Location</Typography>
+                      <Typography variant="body2">{selectedJob.location}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Department</Typography>
+                      <Typography variant="body2">{selectedJob.department}</Typography>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Typography variant="caption" color="textSecondary">Employment Type</Typography>
+                      <Typography variant="body2">{selectedJob.employmentType}</Typography>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+            </Paper>
+
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField

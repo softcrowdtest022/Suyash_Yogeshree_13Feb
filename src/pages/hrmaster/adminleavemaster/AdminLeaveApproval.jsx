@@ -31,7 +31,10 @@ import {
   Tooltip,
   Card,
   CardContent,
-  Grid
+  Grid,
+  Menu,
+  ListItemIcon,
+  ListItemText
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -43,7 +46,10 @@ import {
   Refresh as RefreshIcon,
   Phone as PhoneIcon,
   LocationOn as LocationIcon,
-  Description as DescriptionIcon
+  Description as DescriptionIcon,
+   MoreVert as MoreVertIcon,
+  Visibility as ViewIcon,
+  CloseSharp
 } from "@mui/icons-material";
 import axios from "axios";
 import BASE_URL from "../../../config/Config";
@@ -77,6 +83,10 @@ const AdminLeaveApproval = () => {
   const [actionType, setActionType] = useState(null);
   const [remarks, setRemarks] = useState("");
   const [processing, setProcessing] = useState(false);
+
+  const [actionAnchor, setActionAnchor] = useState(null);
+
+
 
   // View details dialog
   const [openViewDialog, setOpenViewDialog] = useState(false);
@@ -197,6 +207,16 @@ const AdminLeaveApproval = () => {
     setSelectedLeave(leave);
     setOpenViewDialog(true);
   };
+
+
+  const handleActionOpen = (event, leave) => {
+  setActionAnchor(event.currentTarget);
+  setSelectedLeave(leave);
+};
+
+const handleActionClose = () => {
+  setActionAnchor(null);
+};
 
   const handleProcessConfirm = async () => {
     if (!selectedLeave || !actionType) return;
@@ -362,10 +382,10 @@ const AdminLeaveApproval = () => {
   );
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box >
       {/* Header */}
       <Typography
-        variant="h4"
+        variant="h5"
         fontWeight={600}
         sx={{
           background: HEADER_GRADIENT,
@@ -382,11 +402,11 @@ const AdminLeaveApproval = () => {
       </Typography>
 
       {/* Stats Cards */}
-      <Box
+      {/* <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
-          gap: 3,
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(5, 1fr)' },
+          gap: 2,
           mb: 3
         }}
       >
@@ -402,7 +422,7 @@ const AdminLeaveApproval = () => {
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Pending Approvals
           </Typography>
-          <Typography variant="h4" fontWeight={600} sx={{ color: '#ed6c02' }}>
+          <Typography variant="h5" fontWeight={600} sx={{ color: '#ed6c02' }}>
             {stats.pending}
           </Typography>
         </Paper>
@@ -419,7 +439,7 @@ const AdminLeaveApproval = () => {
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Approved Today
           </Typography>
-          <Typography variant="h4" fontWeight={600} sx={{ color: '#2e7d32' }}>
+          <Typography variant="h5" fontWeight={600} sx={{ color: '#2e7d32' }}>
             {stats.approved}
           </Typography>
         </Paper>
@@ -436,11 +456,11 @@ const AdminLeaveApproval = () => {
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Rejected Today
           </Typography>
-          <Typography variant="h4" fontWeight={600} sx={{ color: '#d32f2f' }}>
+          <Typography variant="h5" fontWeight={600} sx={{ color: '#d32f2f' }}>
             {stats.rejected}
           </Typography>
         </Paper>
-      </Box>
+      </Box> */}
 
       {/* Action Bar */}
       <Paper sx={{ p: 2, mb: 3, borderRadius: 2, border: '1px solid #e2e8f0' }}>
@@ -451,7 +471,7 @@ const AdminLeaveApproval = () => {
               placeholder="Search employee, leave type..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ width: { xs: '100%', sm: 250 } }}
+              sx={{ width: { xs: '100%', sm: 500 } }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -461,7 +481,7 @@ const AdminLeaveApproval = () => {
               }}
             />
 
-            <FormControl size="small" sx={{ minWidth: 150 }}>
+            {/* <FormControl size="small" sx={{ minWidth: 150 }}>
               <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -471,9 +491,9 @@ const AdminLeaveApproval = () => {
                 <MenuItem value="Approved">Approved</MenuItem>
                 <MenuItem value="Rejected">Rejected</MenuItem>
               </Select>
-            </FormControl>
+            </FormControl> */}
 
-            <FormControl size="small" sx={{ minWidth: 150 }}>
+            {/* <FormControl size="small" sx={{ minWidth: 150 }}>
               <Select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -483,27 +503,27 @@ const AdminLeaveApproval = () => {
                 <MenuItem value="NumberOfDays">Sort by Days</MenuItem>
                 <MenuItem value="EmployeeName">Sort by Employee Name</MenuItem>
               </Select>
-            </FormControl>
+            </FormControl> */}
 
-            <Button
+            {/* <Button
               variant="outlined"
               startIcon={<SortIcon />}
               onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
             >
               {sortOrder === "asc" ? "Ascending ↑" : "Descending ↓"}
-            </Button>
+            </Button> */}
           </Stack>
 
           <Stack direction="row" spacing={2}>
-            <Button
+            {/* <Button
               variant="outlined"
               startIcon={<DownloadIcon />}
               onClick={exportCSV}
               disabled={filteredLeaves.length === 0}
             >
               Export
-            </Button>
-            
+            </Button> */}
+{/*             
             <Button
               variant="contained"
               startIcon={<RefreshIcon />}
@@ -517,7 +537,7 @@ const AdminLeaveApproval = () => {
               }}
             >
               Refresh
-            </Button>
+            </Button> */}
           </Stack>
         </Stack>
       </Paper>
@@ -532,8 +552,8 @@ const AdminLeaveApproval = () => {
                 <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Leave Type</TableCell>
                 <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Duration</TableCell>
                 <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Days</TableCell>
-                <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Reason</TableCell>
-                <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Contact</TableCell>
+                {/* <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Reason</TableCell> */}
+                {/* <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Contact</TableCell> */}
                 <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Applied On</TableCell>
                 <TableCell sx={{ color: "#fff", fontWeight: 600 }}>Status</TableCell>
                 <TableCell sx={{ color: "#fff", fontWeight: 600 }} align="center">
@@ -614,7 +634,7 @@ const AdminLeaveApproval = () => {
                         }}
                       />
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Tooltip title={leave.Reason || 'No reason provided'}>
                         <Typography 
                           variant="body2" 
@@ -628,15 +648,15 @@ const AdminLeaveApproval = () => {
                           {leave.Reason || 'No reason provided'}
                         </Typography>
                       </Tooltip>
-                    </TableCell>
-                    <TableCell>
+                    </TableCell> */}
+                    {/* <TableCell>
                       <Stack spacing={0.5}>
                         <Typography variant="caption" display="flex" alignItems="center" gap={0.5}>
                           <PhoneIcon sx={{ fontSize: 14, color: '#64748b' }} />
                           {leave.ContactNumber || 'N/A'}
                         </Typography>
                       </Stack>
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <Typography variant="caption">
                         {formatDateTime(leave.AppliedOn || leave.CreatedAt)}
@@ -650,41 +670,12 @@ const AdminLeaveApproval = () => {
                         variant="outlined"
                       />
                     </TableCell>
-                    <TableCell align="center">
-                      <Stack direction="row" spacing={1} justifyContent="center">
-                        <Tooltip title="View Details">
-                          <IconButton 
-                            size="small" 
-                            onClick={() => handleViewDetails(leave)}
-                            sx={{ color: '#00B4D8' }}
-                          >
-                            <SearchIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        {(leave.Status === 'Pending') && (
-                          <>
-                            <Tooltip title="Approve">
-                              <IconButton 
-                                size="small" 
-                                onClick={() => handleProcessClick(leave, "Approved")}
-                                sx={{ color: '#2e7d32' }}
-                              >
-                                <ApproveIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Reject">
-                              <IconButton 
-                                size="small" 
-                                onClick={() => handleProcessClick(leave, "Rejected")}
-                                sx={{ color: '#d32f2f' }}
-                              >
-                                <RejectIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </>
-                        )}
-                      </Stack>
-                    </TableCell>
+<TableCell align="center">
+  <IconButton onClick={(e) => handleActionOpen(e, leave)}>
+    <MoreVertIcon />
+  </IconButton>
+</TableCell>
+
                   </TableRow>
                 ))
               ) : (
@@ -705,6 +696,53 @@ const AdminLeaveApproval = () => {
             </TableBody>
           </Table>
         </TableContainer>
+
+        <Menu
+  anchorEl={actionAnchor}
+  open={Boolean(actionAnchor)}
+  onClose={handleActionClose}
+>
+  <MenuItem
+    onClick={() => {
+      handleViewDetails(selectedLeave);
+      handleActionClose();
+    }}
+  >
+    <ListItemIcon>
+      <ViewIcon fontSize="small" />
+    </ListItemIcon>
+    <ListItemText>View</ListItemText>
+  </MenuItem>
+
+  {selectedLeave?.Status === "Pending" && (
+    <>
+      <MenuItem
+        onClick={() => {
+          handleProcessClick(selectedLeave, "Approved");
+          handleActionClose();
+        }}
+      >
+        <ListItemIcon>
+          <ApproveIcon fontSize="small" color="success" />
+        </ListItemIcon>
+        <ListItemText>Approve</ListItemText>
+      </MenuItem>
+
+      <MenuItem
+        onClick={() => {
+          handleProcessClick(selectedLeave, "Rejected");
+          handleActionClose();
+        }}
+      >
+        <ListItemIcon>
+          <RejectIcon fontSize="small" color="error" />
+        </ListItemIcon>
+        <ListItemText>Reject</ListItemText>
+      </MenuItem>
+    </>
+  )}
+</Menu>
+
 
         {filteredLeaves.length > 0 && (
           <TablePagination
@@ -747,7 +785,8 @@ const AdminLeaveApproval = () => {
                 <Typography variant="subtitle2" gutterBottom color="primary">
                   Leave Details
                 </Typography>
-                <Stack spacing={1.5}>
+                <Stack spacing={1.5} >
+                  <Stack spacing={21} direction="row"> 
                   <Box>
                     <Typography variant="caption" color="text.secondary">Employee</Typography>
                     <Typography variant="body2" fontWeight={500}>
@@ -758,6 +797,8 @@ const AdminLeaveApproval = () => {
                     <Typography variant="caption" color="text.secondary">Leave Type</Typography>
                     <Typography variant="body2">{selectedLeave.LeaveTypeID?.Name}</Typography>
                   </Box>
+                  </Stack>
+                  <Stack spacing={10} direction="row"> 
                   <Box>
                     <Typography variant="caption" color="text.secondary">Duration</Typography>
                     <Typography variant="body2">
@@ -769,6 +810,7 @@ const AdminLeaveApproval = () => {
                     <Typography variant="caption" color="text.secondary">Reason</Typography>
                     <Typography variant="body2">{selectedLeave.Reason || 'No reason provided'}</Typography>
                   </Box>
+                  </Stack>
                 </Stack>
               </CardContent>
             </Card>
@@ -777,7 +819,7 @@ const AdminLeaveApproval = () => {
           <TextField
             label="Remarks"
             multiline
-            rows={4}
+            rows={2}
             fullWidth
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
@@ -803,162 +845,232 @@ const AdminLeaveApproval = () => {
       </Dialog>
 
       {/* View Details Dialog */}
-      <Dialog 
-        open={openViewDialog} 
-        onClose={() => setOpenViewDialog(false)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: { borderRadius: 2 }
-        }}
-      >
-        <DialogTitle sx={{ 
-          background: HEADER_GRADIENT,
-          color: 'white',
-          fontWeight: 600,
-          py: 2
-        }}>
-          Leave Application Details
-        </DialogTitle>
-        <DialogContent sx={{ mt: 3 }}>
-          {selectedLeave && (
-            <Grid container spacing={3}>
-              {/* Employee Information */}
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" gutterBottom color="primary">
-                  Employee Information
-                </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f8fafc' }}>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Avatar sx={{ width: 56, height: 56, bgcolor: '#00B4D8', fontSize: '1.5rem' }}>
-                      {getAvatarInitials(selectedLeave)}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="h6">{getEmployeeName(selectedLeave)}</Typography>
-                      <Stack direction="row" spacing={2} divider={<Divider orientation="vertical" flexItem />}>
-                        <Typography variant="body2" color="text.secondary">
-                          ID: {selectedLeave.EmployeeID?.EmployeeID}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Dept: {selectedLeave.EmployeeID?.DepartmentID?.DepartmentName || 'N/A'}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Designation: {selectedLeave.EmployeeID?.DesignationID?.DesignationName || 'N/A'}
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  </Stack>
-                </Paper>
-              </Grid>
+     {/* View Details Dialog */}
+<Dialog
+  open={openViewDialog}
+  onClose={() => setOpenViewDialog(false)}
+  maxWidth="sm"
+  fullWidth
+  PaperProps={{ sx: { borderRadius: 2 } }}
+>
+  {/* Header */}
+  <DialogTitle
+    sx={{
+      borderBottom: "1px solid #E0E0E0",
+      py: 1,
+      backgroundColor: "#F8FAFC",
+    }}
+  >
+    <Typography fontSize={18} fontWeight={600} color="#101010">
+      Leave Application Details
+    </Typography>
+  </DialogTitle>
 
-              {/* Leave Details */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" gutterBottom color="primary">
-                  Leave Details
-                </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f8fafc' }}>
-                  <Stack spacing={2}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Leave Type</Typography>
-                      <Typography variant="body1" fontWeight={500}>
-                        {selectedLeave.LeaveTypeID?.Name}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Duration</Typography>
-                      <Typography variant="body1">
-                        {formatDate(selectedLeave.StartDate)} to {formatDate(selectedLeave.EndDate)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Number of Days</Typography>
-                      <Chip 
-                        label={selectedLeave.NumberOfDays || calculateDaysDifference(selectedLeave.StartDate, selectedLeave.EndDate)} 
-                        size="small"
-                        sx={{ bgcolor: '#e2e8f0', fontWeight: 600 }}
-                      />
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Status</Typography>
-                      <Chip 
-                        label={selectedLeave.Status} 
-                        color={getStatusColor(selectedLeave.Status)}
-                        size="small"
-                      />
-                    </Box>
-                  </Stack>
-                </Paper>
-              </Grid>
+  {/* Content */}
+  <DialogContent sx={{ pt: 1.5, pb: 1 }}>
+    {selectedLeave && (
+      <Stack spacing={2}>
+        {/* Employee Info */}
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Avatar
+            sx={{
+              width: 48,
+              height: 48,
+              bgcolor: "#00B4D8",
+              fontSize: "1.2rem",
+            }}
+          >
+            {getAvatarInitials(selectedLeave)}
+          </Avatar>
+          <Box>
+            <Typography fontWeight={600}>
+              {getEmployeeName(selectedLeave)}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              ID: {selectedLeave.EmployeeID?.EmployeeID}
+            </Typography>
+          </Box>
+        </Stack>
 
-              {/* Contact Information */}
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" gutterBottom color="primary">
-                  Contact Information
-                </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f8fafc' }}>
-                  <Stack spacing={2}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Contact Number</Typography>
-                      <Typography variant="body1" display="flex" alignItems="center" gap={1}>
-                        <PhoneIcon fontSize="small" sx={{ color: '#64748b' }} />
-                        {selectedLeave.ContactNumber || 'Not provided'}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Address During Leave</Typography>
-                      <Typography variant="body1" display="flex" alignItems="center" gap={1}>
-                        <LocationIcon fontSize="small" sx={{ color: '#64748b' }} />
-                        {selectedLeave.AddressDuringLeave || 'Not specified'}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Paper>
-              </Grid>
+        <Divider />
 
-              {/* Reason */}
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" gutterBottom color="primary">
-                  Reason for Leave
-                </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f8fafc' }}>
-                  <Typography variant="body1" display="flex" alignItems="center" gap={1}>
-                    <DescriptionIcon fontSize="small" sx={{ color: '#64748b' }} />
-                    {selectedLeave.Reason || 'No reason provided'}
-                  </Typography>
-                </Paper>
-              </Grid>
+        {/* Leave Details */}
+        <Stack spacing={1.5}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            Leave Details
+          </Typography>
 
-              {/* Application Metadata */}
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" gutterBottom color="primary">
-                  Application Metadata
-                </Typography>
-                <Paper variant="outlined" sx={{ p: 2, bgcolor: '#f8fafc' }}>
-                  <Stack direction="row" spacing={4}>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Applied On</Typography>
-                      <Typography variant="body2">{formatDateTime(selectedLeave.AppliedOn)}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Last Updated</Typography>
-                      <Typography variant="body2">{formatDateTime(selectedLeave.UpdatedAt)}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">Application ID</Typography>
-                      <Typography variant="body2">{selectedLeave._id}</Typography>
-                    </Box>
-                  </Stack>
-                </Paper>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenViewDialog(false)} variant="contained">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <Stack direction="row" spacing={2}>
+            <Box flex={1}>
+              <Typography variant="caption" color="text.secondary">
+                Leave Type
+              </Typography>
+              <Typography fontWeight={600}>
+                {selectedLeave.LeaveTypeID?.Name}
+              </Typography>
+            </Box>
+
+            <Box flex={1}>
+              <Typography variant="caption" color="text.secondary">
+                Status
+              </Typography><br></br>
+              <Chip
+                label={selectedLeave.Status}
+                size="small"
+                color={getStatusColor(selectedLeave.Status)}
+              />
+            </Box>
+
+            <Box flex={1}>
+              <Typography variant="caption" color="text.secondary">
+                Duration
+              </Typography>
+              <Typography>
+                {formatDate(selectedLeave.StartDate)} {" "}
+                {formatDate(selectedLeave.EndDate)}
+              </Typography>
+            </Box>
+
+            <Box flex={1}>
+              <Typography variant="caption" color="text.secondary">
+                Days
+              </Typography>
+              <Typography fontWeight={600}>
+                {selectedLeave.NumberOfDays ||
+                  calculateDaysDifference(
+                    selectedLeave.StartDate,
+                    selectedLeave.EndDate
+                  )}{" "}
+                days
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Stack direction="row" spacing={2}>
+            
+
+            
+          </Stack>
+        </Stack>
+
+        <Divider />
+
+        {/* Contact Info */}
+        <Stack spacing={1}  >
+          <Typography variant="subtitle2" fontWeight={600}>
+            Contact Information
+          </Typography>
+
+                  <Stack direction="row" spacing={10}>
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Contact Number
+            </Typography>
+            <Typography>
+              {selectedLeave.ContactNumber || "Not provided"}
+            </Typography>
+          </Box>
+
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              Address During Leave
+            </Typography>
+            <Typography>
+              {selectedLeave.AddressDuringLeave || "Not specified"}
+            </Typography>
+          </Box>
+          </Stack>
+        </Stack>
+
+        <Divider />
+
+        {/* Reason */}
+        <Stack spacing={1}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            Reason
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              backgroundColor: "#F8FAFC",
+              p: 1,
+              borderRadius: 1,
+              minHeight: 50,
+              lineHeight: 1.4,
+            }}
+          >
+            {selectedLeave.Reason || "No reason provided"}
+          </Typography>
+        </Stack>
+
+        <Divider />
+
+        {/* System Info */}
+        <Stack spacing={1}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            System Information
+          </Typography>
+
+          <Stack direction="row" spacing={2}>
+            <Box flex={1}>
+              <Typography variant="caption" color="text.secondary">
+                Applied On
+              </Typography>
+              <Typography variant="body2">
+                {formatDateTime(selectedLeave.AppliedOn)}
+              </Typography>
+            </Box>
+
+            <Box flex={1}>
+              <Typography variant="caption" color="text.secondary">
+                Last Updated
+              </Typography>
+              <Typography variant="body2">
+                {formatDateTime(selectedLeave.UpdatedAt)}
+              </Typography>
+            </Box>
+          </Stack>
+
+          {/* <Box>
+            <Typography variant="caption" color="text.secondary">
+              Application ID
+            </Typography>
+            <Typography variant="body2">{selectedLeave._id}</Typography>
+          </Box> */}
+        </Stack>
+      </Stack>
+    )}
+  </DialogContent>
+
+  {/* Actions */}
+  <DialogActions
+    sx={{
+      px: 3,
+      pb: 2,
+      pt: 2,
+      borderTop: "1px solid #E0E0E0",
+      backgroundColor: "#F8FAFC",
+    }}
+  >
+    <Button
+      variant="contained"
+      onClick={() => setOpenViewDialog(false)}
+      startIcon={<CloseSharp />}
+      sx={{
+        borderRadius: 1,
+        px: 3,
+        py: 1,
+        textTransform: "none",
+        fontWeight: 500,
+        backgroundColor: "#1976D2",
+        "&:hover": { backgroundColor: "#1565C0" },
+      }}
+    >
+      Close
+    </Button>
+  </DialogActions>
+</Dialog>
+
 
       {/* Snackbar */}
       <Snackbar

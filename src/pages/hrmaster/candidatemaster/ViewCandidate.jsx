@@ -6,30 +6,25 @@ import {
   DialogActions,
   Button,
   Stack,
-  Alert,
   Typography,
-  Paper,
-  Box,
-  IconButton,
   Chip,
-  Avatar,
   Divider,
   Grid,
-  CircularProgress,
   Stepper,
   Step,
   StepLabel,
-  styled,
-  StepConnector,
-  Badge,
-  useMediaQuery,
-  useTheme,
+  Box,
+  Paper,
+  Avatar,
+  IconButton,
+  CircularProgress,
+  Alert,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,
+  TableRow
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -41,87 +36,73 @@ import {
   LocationOn as LocationIcon,
   CalendarToday as CalendarIcon,
   Description as ResumeIcon,
-  NoteAdd as NoteAddIcon,
-  CheckCircle as CheckCircleIcon,
-  Pending as PendingIcon,
-  Error as ErrorIcon,
-  Star as StarIcon,
-  Update as UpdateIcon,
   Download as DownloadIcon,
-  Timeline as TimelineIcon,
+  Star as StarIcon,
+  BusinessCenter as JobIcon,
+  Assignment as AssignmentIcon,
+  History as HistoryIcon,
+  Comment as CommentIcon,
+  ThumbUp as ThumbUpIcon,
+  ThumbDown as ThumbDownIcon,
+  Pending as PendingIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon,
+  CloudUpload as CloudUploadIcon,
   LinkedIn as LinkedInIcon,
   Language as LanguageIcon,
   Business as BusinessIcon,
-  CloudUpload as CloudUploadIcon,
-  People as PeopleIcon,
-  FiberManualRecord as FiberManualRecordIcon
+  People as PeopleIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
 
-// Custom Stepper Connector
-const ColorConnector = styled(StepConnector)(({ theme }) => ({
-  '& .MuiStepConnector-line': {
-    height: 4,
-    border: 0,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 10,
-  },
-  '&.Mui-active .MuiStepConnector-line': {
-    background: 'linear-gradient(90deg, #164e63, #00B4D8)',
-  },
-  '&.Mui-completed .MuiStepConnector-line': {
-    background: 'linear-gradient(90deg, #164e63, #00B4D8)',
-  },
-}));
-
-const sections = ["Overview", "Contact & Address", "Education & Skills", "Experience", "Notes"];
-
-// Status color mapping with proper enum values
+// Status color mapping
 const STATUS_COLORS = {
-  'new': { bg: '#E3F2FD', color: '#1976D2', icon: <PendingIcon />, label: 'New' },
-  'contacted': { bg: '#F3E5F5', color: '#7B1FA2', icon: <PersonIcon />, label: 'Contacted' },
-  'shortlisted': { bg: '#E8F5E8', color: '#2E7D32', icon: <StarIcon />, label: 'Shortlisted' },
-  'interviewed': { bg: '#E1F5FE', color: '#0288D1', icon: <PersonIcon />, label: 'Interviewed' },
-  'selected': { bg: '#E8F5E8', color: '#2E7D32', icon: <CheckCircleIcon />, label: 'Selected' },
-  'rejected': { bg: '#FFEBEE', color: '#C62828', icon: <ErrorIcon />, label: 'Rejected' },
-  'onHold': { bg: '#FFF8E1', color: '#FF8F00', icon: <PendingIcon />, label: 'On Hold' },
-  'joined': { bg: '#E8F5E8', color: '#1B5E20', icon: <CheckCircleIcon />, label: 'Joined' }
+  new: { bg: '#E3F2FD', color: '#1976D2', icon: <PendingIcon />, label: 'New' },
+  contacted: { bg: '#F3E5F5', color: '#7B1FA2', icon: <PersonIcon />, label: 'Contacted' },
+  shortlisted: { bg: '#E8F5E8', color: '#2E7D32', icon: <ThumbUpIcon />, label: 'Shortlisted' },
+  interviewed: { bg: '#E1F5FE', color: '#0288D1', icon: <PersonIcon />, label: 'Interviewed' },
+  selected: { bg: '#E8F5E8', color: '#2E7D32', icon: <CheckCircleIcon />, label: 'Selected' },
+  rejected: { bg: '#FFEBEE', color: '#C62828', icon: <ThumbDownIcon />, label: 'Rejected' },
+  onHold: { bg: '#FFF8E1', color: '#FF8F00', icon: <PendingIcon />, label: 'On Hold' },
+  joined: { bg: '#E8F5E8', color: '#1B5E20', icon: <CheckCircleIcon />, label: 'Joined' }
 };
 
-// Source icon mapping with proper enum values
+// Source icon mapping
 const SOURCE_ICONS = {
   'naukri': { icon: <LanguageIcon />, color: '#FF5722', label: 'Naukri' },
   'linkedin': { icon: <LinkedInIcon />, color: '#0077B5', label: 'LinkedIn' },
   'indeed': { icon: <WorkIcon />, color: '#003A9B', label: 'Indeed' },
-  'walkin': { icon: <PeopleIcon />, color: '#4CAF50', label: 'Walk-in' },
+  'walkin': { icon: <PersonIcon />, color: '#4CAF50', label: 'Walk-in' },
   'reference': { icon: <PeopleIcon />, color: '#9C27B0', label: 'Reference' },
   'careerPage': { icon: <BusinessIcon />, color: '#FF9800', label: 'Career Page' },
   'upload': { icon: <CloudUploadIcon />, color: '#00BCD4', label: 'Upload' },
   'other': { icon: <PersonIcon />, color: '#9E9E9E', label: 'Other' }
 };
 
-const ViewCandidate = ({ open, onClose, candidateId, candidateData }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
-  const [candidate, setCandidate] = useState(candidateData || null);
-  const [loading, setLoading] = useState(!candidateData);
+const ViewCandidate = ({ open, onClose, candidateId }) => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [candidate, setCandidate] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [activeSection, setActiveSection] = useState(0);
 
-  // Fetch candidate details if not provided
+  const steps = [
+    'Personal Information',
+    'Contact & Address',
+    'Education & Skills',
+    'Work Experience',
+    'Applications & Notes'
+  ];
+
   useEffect(() => {
-    if (open && !candidateData && candidateId) {
+    if (open && candidateId) {
       fetchCandidateDetails();
     }
-  }, [open, candidateData, candidateId]);
+  }, [open, candidateId]);
 
-  // Fetch candidate details
   const fetchCandidateDetails = async () => {
     setLoading(true);
     setError('');
-
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${BASE_URL}/api/candidates/${candidateId}`, {
@@ -144,33 +125,28 @@ const ViewCandidate = ({ open, onClose, candidateId, candidateData }) => {
     }
   };
 
-  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleString('en-US', {
       year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  // Format date time
-  const formatDateTime = (dateString) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   };
 
-  // Get status style
+  const formatShortDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const getStatusStyle = (status) => {
-    return STATUS_COLORS[status?.toLowerCase()] || { 
+    return STATUS_COLORS[status] || { 
       bg: '#EEEEEE', 
       color: '#616161', 
       icon: <PersonIcon />, 
@@ -178,23 +154,39 @@ const ViewCandidate = ({ open, onClose, candidateId, candidateData }) => {
     };
   };
 
-  // Get source info
   const getSourceInfo = (source) => {
-    return SOURCE_ICONS[source?.toLowerCase()] || { 
+    return SOURCE_ICONS[source] || { 
       icon: <PersonIcon />, 
       color: '#9E9E9E', 
       label: source || 'Other' 
     };
   };
 
-  // Handle view resume
+  const handleNext = () => {
+    setActiveStep((prev) => prev + 1);
+  };
+
+  const handleBack = () => {
+    setActiveStep((prev) => prev - 1);
+  };
+
+  const handleReset = () => {
+    setActiveStep(0);
+  };
+
+  const handleClose = () => {
+    setActiveStep(0);
+    setCandidate(null);
+    setError('');
+    onClose();
+  };
+
   const handleViewResume = () => {
     if (candidate?.resume?.fileUrl) {
       window.open(`${BASE_URL}${candidate.resume.fileUrl}`, '_blank');
     }
   };
 
-  // Handle download resume
   const handleDownloadResume = () => {
     if (candidate?.resume?.fileUrl) {
       const link = document.createElement('a');
@@ -206,43 +198,35 @@ const ViewCandidate = ({ open, onClose, candidateId, candidateData }) => {
     }
   };
 
-  const statusStyle = candidate ? getStatusStyle(candidate.status) : null;
-  const sourceInfo = candidate ? getSourceInfo(candidate.source) : null;
+  const getStepContent = (step) => {
+    if (!candidate) return null;
 
-  // Handle section navigation
-  const handleNextSection = () => {
-    setActiveSection(prev => Math.min(prev + 1, sections.length - 1));
-  };
+    const statusStyle = getStatusStyle(candidate.status);
+    const sourceInfo = getSourceInfo(candidate.source);
 
-  const handlePrevSection = () => {
-    setActiveSection(prev => Math.max(prev - 1, 0));
-  };
-
-  // Render section content
-  const renderSectionContent = (section) => {
-    switch(section) {
-      case 0: // Overview - Clean table format
+    switch (step) {
+      case 0:
         return (
-          <Stack spacing={2}>
-            {/* Candidate Header Card */}
-            <Paper elevation={0} sx={{ p: 2, backgroundColor: '#F9F9F9', borderRadius: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+          <Stack spacing={3}>
+            {/* Profile Header Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
                 <Avatar 
                   sx={{ 
-                    width: 56, 
-                    height: 56, 
+                    width: 80, 
+                    height: 80, 
                     bgcolor: '#E3F2FD',
                     color: '#1976D2',
-                    fontSize: '20px',
+                    fontSize: '32px',
                     fontWeight: 600
                   }}
                 >
                   {candidate.firstName?.[0]}{candidate.lastName?.[0]}
                 </Avatar>
-                <Box sx={{ flex: 1, minWidth: 200 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600, color: '#101010' }}>
-                      {candidate.fullName}
+                <Box sx={{ flex: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', mb: 1 }}>
+                    <Typography variant="h5" fontWeight={600}>
+                      {candidate.fullName || `${candidate.firstName} ${candidate.lastName}`}
                     </Typography>
                     <Chip
                       label={candidate.candidateId}
@@ -251,46 +235,33 @@ const ViewCandidate = ({ open, onClose, candidateId, candidateData }) => {
                         bgcolor: '#E3F2FD', 
                         color: '#1976D2', 
                         fontWeight: 500,
-                        height: 22,
-                        fontSize: '11px'
+                        height: 24
                       }}
                     />
                   </Box>
-                  <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-                    {statusStyle && (
-                      <Chip
-                        size="small"
-                        icon={statusStyle.icon}
-                        label={statusStyle.label}
-                        sx={{
-                          backgroundColor: statusStyle.bg,
-                          color: statusStyle.color,
-                          fontWeight: 500,
-                          height: 24,
-                          '& .MuiChip-icon': { 
-                            color: statusStyle.color,
-                            fontSize: 16
-                          }
-                        }}
-                      />
-                    )}
-                    {sourceInfo && (
-                      <Chip
-                        size="small"
-                        icon={sourceInfo.icon}
-                        label={sourceInfo.label}
-                        sx={{
-                          backgroundColor: '#E3F2FD',
-                          color: sourceInfo.color,
-                          fontWeight: 500,
-                          height: 24,
-                          '& .MuiChip-icon': { 
-                            color: sourceInfo.color,
-                            fontSize: 16
-                          }
-                        }}
-                      />
-                    )}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Chip
+                      size="small"
+                      icon={statusStyle.icon}
+                      label={statusStyle.label}
+                      sx={{
+                        backgroundColor: statusStyle.bg,
+                        color: statusStyle.color,
+                        fontWeight: 500,
+                        '& .MuiChip-icon': { color: statusStyle.color }
+                      }}
+                    />
+                    <Chip
+                      size="small"
+                      icon={sourceInfo.icon}
+                      label={sourceInfo.label}
+                      sx={{
+                        backgroundColor: '#E3F2FD',
+                        color: sourceInfo.color,
+                        fontWeight: 500,
+                        '& .MuiChip-icon': { color: sourceInfo.color }
+                      }}
+                    />
                   </Box>
                 </Box>
                 {candidate.resume && (
@@ -318,562 +289,537 @@ const ViewCandidate = ({ open, onClose, candidateId, candidateData }) => {
               </Box>
             </Paper>
 
-            {/* Quick Information Table */}
-            <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: '#F9F9F9', borderRadius: 2 }}>
-              <Table size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
+            {/* Personal Information Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PersonIcon sx={{ color: '#1976D2' }} />
+                Personal Information
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                      Email Address
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <EmailIcon sx={{ fontSize: 18, color: '#1976D2' }} />
+                      <Typography variant="body1">{candidate.email}</Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                      Phone Number
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <PhoneIcon sx={{ fontSize: 18, color: '#1976D2' }} />
+                      <Typography variant="body1">{candidate.phone}</Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+
+                {candidate.dateOfBirth && (
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                        Date of Birth
+                      </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <EmailIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                        Email
+                        <CalendarIcon sx={{ fontSize: 18, color: '#1976D2' }} />
+                        <Typography variant="body1">{formatShortDate(candidate.dateOfBirth)}</Typography>
                       </Box>
-                    </TableCell>
-                    <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{candidate.email}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <PhoneIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                        Phone
-                      </Box>
-                    </TableCell>
-                    <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{candidate.phone}</TableCell>
-                  </TableRow>
-                  {candidate.dateOfBirth && (
-                    <TableRow>
-                      <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CalendarIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                          Date of Birth
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{formatDate(candidate.dateOfBirth)}</TableCell>
-                    </TableRow>
-                  )}
-                  {candidate.gender && (
-                    <TableRow>
-                      <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <PersonIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                          Gender
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>
+                    </Box>
+                  </Grid>
+                )}
+
+                {candidate.gender && (
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                        Gender
+                      </Typography>
+                      <Typography variant="body1">
                         {candidate.gender === 'M' ? 'Male' : candidate.gender === 'F' ? 'Female' : 'Other'}
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-
-            {/* Metadata Table */}
-            <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: '#F5F5F5', borderRadius: 2 }}>
-              <Table size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                      Created
-                    </TableCell>
-                    <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>
-                      {formatDateTime(candidate.createdAt)} 
-                      {candidate.createdByName && ` by ${candidate.createdByName}`}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569' }}>
-                      Last Updated
-                    </TableCell>
-                    <TableCell>
-                      {formatDateTime(candidate.updatedAt)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Stack>
-        );
-
-      case 1: // Contact & Address - Table format
-        return (
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: '#F9F9F9', borderRadius: 2 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell colSpan={2} sx={{ fontWeight: 600, color: '#101010', backgroundColor: '#F0F0F0' }}>
-                        Contact Information
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <EmailIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                          Email
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{candidate.email}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <PhoneIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                          Phone
-                        </Box>
-                      </TableCell>
-                      <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{candidate.phone}</TableCell>
-                    </TableRow>
-                    {candidate.dateOfBirth && (
-                      <TableRow>
-                        <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <CalendarIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                            Date of Birth
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{formatDate(candidate.dateOfBirth)}</TableCell>
-                      </TableRow>
-                    )}
-                    {candidate.gender && (
-                      <TableRow>
-                        <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <PersonIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                            Gender
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          {candidate.gender === 'M' ? 'Male' : candidate.gender === 'F' ? 'Female' : 'Other'}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-
-            {candidate.address && (
-              <Grid item xs={12} md={6}>
-                <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: '#F9F9F9', borderRadius: 2 }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell colSpan={2} sx={{ fontWeight: 600, color: '#101010', backgroundColor: '#F0F0F0' }}>
-                          Address
-                        </TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {candidate.address.street && (
-                        <TableRow>
-                          <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <LocationIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                              Street
-                            </Box>
-                          </TableCell>
-                          <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{candidate.address.street}</TableCell>
-                        </TableRow>
-                      )}
-                      <TableRow>
-                        <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                          City
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{candidate.address.city}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                          State
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{candidate.address.state}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569', borderBottom: '1px solid #E0E0E0' }}>
-                          Pincode
-                        </TableCell>
-                        <TableCell sx={{ borderBottom: '1px solid #E0E0E0' }}>{candidate.address.pincode}</TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell component="th" scope="row" sx={{ width: '40%', fontWeight: 600, color: '#475569' }}>
-                          Country
-                        </TableCell>
-                        <TableCell>{candidate.address.country}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
               </Grid>
-            )}
-          </Grid>
-        );
+            </Paper>
 
-      case 2: // Education & Skills - Table format
-        return (
-          <Stack spacing={2}>
-            {/* Education Table */}
-            <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: '#F9F9F9', borderRadius: 2 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell colSpan={4} sx={{ fontWeight: 600, color: '#101010', backgroundColor: '#F0F0F0' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <SchoolIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                        Education
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600, color: '#475569' }}>Degree</TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: '#475569' }}>Institution</TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: '#475569' }}>Year</TableCell>
-                    <TableCell sx={{ fontWeight: 600, color: '#475569' }}>Specialization</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {candidate.education && candidate.education.length > 0 ? (
-                    candidate.education.map((edu, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{edu.degree}</TableCell>
-                        <TableCell>{edu.institution}</TableCell>
-                        <TableCell>{edu.yearOfPassing}</TableCell>
-                        <TableCell>{edu.specialization || '-'}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} align="center" sx={{ py: 2 }}>
-                        <Typography variant="body2" color="textSecondary">No education details available</Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            {/* System Information Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <HistoryIcon sx={{ color: '#1976D2' }} />
+                System Information
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                      Created At
+                    </Typography>
+                    <Typography variant="body2">
+                      {formatDate(candidate.createdAt)}
+                      {candidate.createdByName && ` by ${candidate.createdByName}`}
+                    </Typography>
+                  </Box>
+                </Grid>
 
-            {/* Skills Table */}
-            <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: '#F9F9F9', borderRadius: 2 }}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: 600, color: '#101010', backgroundColor: '#F0F0F0' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <StarIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                        Skills
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      {candidate.skills && candidate.skills.length > 0 ? (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                          {candidate.skills.map((skill, index) => (
-                            <Chip
-                              key={index}
-                              label={skill}
-                              size="small"
-                              sx={{
-                                backgroundColor: '#E3F2FD',
-                                color: '#1976D2',
-                                fontWeight: 500,
-                                fontSize: '12px',
-                                height: 24
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      ) : (
-                        <Typography variant="body2" color="textSecondary">No skills listed</Typography>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                      Last Updated
+                    </Typography>
+                    <Typography variant="body2">
+                      {formatDate(candidate.updatedAt)}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
           </Stack>
         );
 
-      case 3: // Experience - Table format
+      case 1:
         return (
-          <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: '#F9F9F9', borderRadius: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell colSpan={4} sx={{ fontWeight: 600, color: '#101010', backgroundColor: '#F0F0F0' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <WorkIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                      Work Experience
+          <Stack spacing={3}>
+            {/* Contact Information Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <EmailIcon sx={{ color: '#1976D2' }} />
+                Contact Information
+              </Typography>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                      Email Address
+                    </Typography>
+                    <Typography variant="body1">{candidate.email}</Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                      Phone Number
+                    </Typography>
+                    <Typography variant="body1">{candidate.phone}</Typography>
+                  </Box>
+                </Grid>
+
+                {candidate.dateOfBirth && (
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                        Date of Birth
+                      </Typography>
+                      <Typography variant="body1">{formatShortDate(candidate.dateOfBirth)}</Typography>
                     </Box>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600, color: '#475569' }}>Position</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: '#475569' }}>Company</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: '#475569' }}>Duration</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: '#475569' }}>Description</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {candidate.experience && candidate.experience.length > 0 ? (
-                  candidate.experience.map((exp, index) => (
-                    <TableRow key={index}>
-                      <TableCell sx={{ fontWeight: 500 }}>{exp.position}</TableCell>
-                      <TableCell>{exp.company}</TableCell>
-                      <TableCell>
-                        {exp.fromDate ? formatDate(exp.fromDate) : 'N/A'} - 
-                        {exp.current ? 'Present' : (exp.toDate ? formatDate(exp.toDate) : 'N/A')}
-                      </TableCell>
-                      <TableCell>{exp.description || '-'}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center" sx={{ py: 2 }}>
-                      <Typography variant="body2" color="textSecondary">No experience details available</Typography>
-                    </TableCell>
-                  </TableRow>
+                  </Grid>
                 )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+
+                {candidate.gender && (
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                        Gender
+                      </Typography>
+                      <Typography variant="body1">
+                        {candidate.gender === 'M' ? 'Male' : candidate.gender === 'F' ? 'Female' : 'Other'}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+              </Grid>
+            </Paper>
+
+            {/* Address Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <LocationIcon sx={{ color: '#1976D2' }} />
+                Address Information
+              </Typography>
+              {candidate.address ? (
+                <Grid container spacing={3}>
+                  {candidate.address.street && (
+                    <Grid item xs={12}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                          Street
+                        </Typography>
+                        <Typography variant="body1">{candidate.address.street}</Typography>
+                      </Box>
+                    </Grid>
+                  )}
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                        City
+                      </Typography>
+                      <Typography variant="body1">{candidate.address?.city || 'N/A'}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                        State
+                      </Typography>
+                      <Typography variant="body1">{candidate.address?.state || 'N/A'}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                        Pincode
+                      </Typography>
+                      <Typography variant="body1">{candidate.address?.pincode || 'N/A'}</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
+                        Country
+                      </Typography>
+                      <Typography variant="body1">{candidate.address?.country || 'India'}</Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              ) : (
+                <Typography color="textSecondary">No address information available</Typography>
+              )}
+            </Paper>
+          </Stack>
         );
 
-      case 4: // Notes - Table format
+      case 2:
         return (
-          <TableContainer component={Paper} elevation={0} sx={{ backgroundColor: '#F9F9F9', borderRadius: 2 }}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell colSpan={3} sx={{ fontWeight: 600, color: '#101010', backgroundColor: '#F0F0F0' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <TimelineIcon sx={{ fontSize: 18, color: '#1976D2' }} />
-                      Notes & Activity
-                    </Box>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600, color: '#475569', width: '15%' }}>Type</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: '#475569', width: '60%' }}>Note</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: '#475569', width: '25%' }}>Added By / Date</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {candidate.notes && candidate.notes.length > 0 ? (
-                  candidate.notes.map((note, index) => (
-                    <TableRow key={note._id || index}>
-                      <TableCell>
-                        <Chip
-                          label="Note"
-                          size="small"
-                          sx={{
-                            backgroundColor: '#7B1FA2',
-                            color: '#FFFFFF',
-                            fontSize: '10px',
-                            height: '20px'
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>{note.text}</TableCell>
-                      <TableCell>
-                        <Typography variant="caption" display="block">
-                          {note.createdByName || 'System'}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {formatDateTime(note.createdAt)}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={3} align="center" sx={{ py: 3 }}>
-                      <NoteAddIcon sx={{ fontSize: 32, color: '#94A3B8', mb: 1 }} />
-                      <Typography variant="body2" color="textSecondary">No notes available</Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Stack spacing={3}>
+            {/* Education Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <SchoolIcon sx={{ color: '#1976D2' }} />
+                Education
+              </Typography>
+              {candidate.education && candidate.education.length > 0 ? (
+                <Stack spacing={2}>
+                  {candidate.education.map((edu, index) => (
+                    <Paper key={edu._id || index} sx={{ p: 2, bgcolor: '#F8FAFC' }}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={4}>
+                          <Typography variant="caption" color="textSecondary">Degree</Typography>
+                          <Typography variant="body2" fontWeight={500}>{edu.degree}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <Typography variant="caption" color="textSecondary">Institution</Typography>
+                          <Typography variant="body2">{edu.institution}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={2}>
+                          <Typography variant="caption" color="textSecondary">Year</Typography>
+                          <Typography variant="body2">{edu.yearOfPassing}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={2}>
+                          <Typography variant="caption" color="textSecondary">Specialization</Typography>
+                          <Typography variant="body2">{edu.specialization || '-'}</Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  ))}
+                </Stack>
+              ) : (
+                <Typography color="textSecondary">No education details available</Typography>
+              )}
+            </Paper>
+
+            {/* Skills Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <StarIcon sx={{ color: '#1976D2' }} />
+                Skills
+              </Typography>
+              {candidate.skills && candidate.skills.length > 0 ? (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {candidate.skills.map((skill, index) => (
+                    <Chip
+                      key={index}
+                      label={skill}
+                      size="small"
+                      sx={{
+                        backgroundColor: '#E3F2FD',
+                        color: '#1976D2',
+                        fontWeight: 500
+                      }}
+                    />
+                  ))}
+                </Box>
+              ) : (
+                <Typography color="textSecondary">No skills listed</Typography>
+              )}
+            </Paper>
+          </Stack>
+        );
+
+      case 3:
+        return (
+          <Stack spacing={3}>
+            {/* Experience Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <WorkIcon sx={{ color: '#1976D2' }} />
+                Work Experience
+              </Typography>
+              {candidate.experience && candidate.experience.length > 0 ? (
+                <Stack spacing={2}>
+                  {candidate.experience.map((exp, index) => (
+                    <Paper key={exp._id || index} sx={{ p: 2, bgcolor: '#F8FAFC' }}>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={4}>
+                          <Typography variant="caption" color="textSecondary">Position</Typography>
+                          <Typography variant="body2" fontWeight={500}>{exp.position}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <Typography variant="caption" color="textSecondary">Company</Typography>
+                          <Typography variant="body2">{exp.company}</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <Typography variant="caption" color="textSecondary">Duration</Typography>
+                          <Typography variant="body2">
+                            {exp.fromDate ? formatShortDate(exp.fromDate) : 'N/A'} - 
+                            {exp.current ? 'Present' : (exp.toDate ? formatShortDate(exp.toDate) : 'N/A')}
+                          </Typography>
+                        </Grid>
+                        {exp.description && (
+                          <Grid item xs={12}>
+                            <Typography variant="caption" color="textSecondary">Description</Typography>
+                            <Typography variant="body2">{exp.description}</Typography>
+                          </Grid>
+                        )}
+                      </Grid>
+                    </Paper>
+                  ))}
+                </Stack>
+              ) : (
+                <Typography color="textSecondary">No experience details available</Typography>
+              )}
+            </Paper>
+          </Stack>
+        );
+
+      case 4:
+        return (
+          <Stack spacing={3}>
+            {/* Applications Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AssignmentIcon sx={{ color: '#1976D2' }} />
+                Job Applications
+              </Typography>
+              {candidate.applications && candidate.applications.length > 0 ? (
+                <Stack spacing={2}>
+                  {candidate.applications.map((app) => {
+                    const appStatusStyle = getStatusStyle(app.status);
+                    return (
+                      <Paper key={app._id} sx={{ p: 2, bgcolor: '#F8FAFC' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                          <JobIcon sx={{ color: '#1976D2', fontSize: 20 }} />
+                          <Typography variant="subtitle2" fontWeight={600}>
+                            Application #{app.applicationId}
+                          </Typography>
+                          <Chip
+                            label={app.status}
+                            size="small"
+                            sx={{
+                              backgroundColor: appStatusStyle.bg,
+                              color: appStatusStyle.color,
+                              fontWeight: 500,
+                              height: 20,
+                              fontSize: '10px'
+                            }}
+                          />
+                        </Box>
+                        <Grid container spacing={2}>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" color="textSecondary">Job Title</Typography>
+                            <Typography variant="body2">{app.jobId?.title}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" color="textSecondary">Job ID</Typography>
+                            <Typography variant="body2">{app.jobId?.jobId}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" color="textSecondary">Applied Date</Typography>
+                            <Typography variant="body2">{formatShortDate(app.appliedDate)}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" color="textSecondary">Source</Typography>
+                            <Typography variant="body2">{app.source}</Typography>
+                          </Grid>
+                        </Grid>
+                      </Paper>
+                    );
+                  })}
+                </Stack>
+              ) : (
+                <Typography color="textSecondary">No applications found</Typography>
+              )}
+            </Paper>
+
+            {/* Notes Card */}
+            <Paper sx={{ p: 3, bgcolor: '#FFFFFF' }}>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CommentIcon sx={{ color: '#1976D2' }} />
+                Notes & Activity
+              </Typography>
+              {candidate.notes && candidate.notes.length > 0 ? (
+                <Stack spacing={2}>
+                  {candidate.notes.slice().reverse().map((note, index) => (
+                    <Paper key={note._id || index} sx={{ p: 2, bgcolor: '#F8FAFC' }}>
+                      <Box sx={{ display: 'flex', gap: 2 }}>
+                        <Avatar sx={{ width: 32, height: 32, bgcolor: '#7B1FA2', fontSize: '14px' }}>
+                          {note.createdByName?.[0] || 'S'}
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5, flexWrap: 'wrap' }}>
+                            <Typography variant="subtitle2" fontWeight={600}>
+                              {note.createdByName || 'System'}
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary">
+                              {formatDate(note.createdAt)}
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2">{note.text}</Typography>
+                        </Box>
+                      </Box>
+                    </Paper>
+                  ))}
+                </Stack>
+              ) : (
+                <Typography color="textSecondary">No notes available</Typography>
+              )}
+            </Paper>
+          </Stack>
         );
 
       default:
-        return null;
+        return 'Unknown step';
     }
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="lg"
       fullWidth
-      fullScreen={isMobile}
-      PaperProps={{
-        sx: { 
-          borderRadius: isMobile ? 0 : 2,
-          maxHeight: isMobile ? '100%' : '90vh',
-          minHeight: isMobile ? '100%' : '500px'
-        }
-      }}
+      PaperProps={{ sx: { borderRadius: 2 } }}
     >
-      <DialogTitle sx={{ 
-        borderBottom: '1px solid #E0E0E0', 
-        pb: 2,
+      <DialogTitle sx={{
+        borderBottom: '1px solid #E0E0E0',
         backgroundColor: '#F8FAFC',
-        position: 'sticky',
-        top: 0,
-        zIndex: 2,
-        px: isMobile ? 2 : 3
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <PersonIcon sx={{ color: '#1976D2' }} />
-            <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight={600} color="#101010">
-              Candidate Details
-            </Typography>
-            {candidate && (
-              <Chip
-                label={candidate.candidateId}
-                size="small"
-                sx={{ 
-                  bgcolor: '#E3F2FD', 
-                  color: '#1976D2', 
-                  fontWeight: 500,
-                  height: 24,
-                  fontSize: '12px'
-                }}
-              />
-            )}
-          </Box>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon />
-          </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <PersonIcon sx={{ color: '#1976D2' }} />
+          <Typography variant="h6" fontWeight={600}>
+            Candidate Details
+          </Typography>
+          {candidate && (
+            <Chip
+              label={candidate.candidateId}
+              size="small"
+              sx={{ 
+                bgcolor: '#E3F2FD', 
+                color: '#1976D2', 
+                fontWeight: 500,
+                height: 24,
+                fontSize: '12px',
+                ml: 1
+              }}
+            />
+          )}
         </Box>
+        <IconButton onClick={handleClose} size="small">
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 2, pb: 1, px: isMobile ? 2 : 3 }}>
+      <DialogContent sx={{ pt: 3 }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
             <CircularProgress size={40} sx={{ color: '#1976D2' }} />
           </Box>
         ) : error ? (
-          <Alert severity="error" sx={{ borderRadius: 1 }}>
+          <Alert 
+            severity="error" 
+            sx={{ borderRadius: 1, mb: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={fetchCandidateDetails}>
+                Retry
+              </Button>
+            }
+          >
             {error}
           </Alert>
-        ) : candidate && (
-          <Stack spacing={3}>
-            {/* Section Stepper - Hide on mobile, show compact version */}
-            {!isMobile && (
-              <Paper elevation={0} sx={{ p: 2, bgcolor: '#F5F5F5', borderRadius: 2 }}>
-                <Stepper
-                  activeStep={activeSection}
-                  alternativeLabel
-                  connector={<ColorConnector />}
-                >
-                  {sections.map((label) => (
-                    <Step key={label}>
-                      <StepLabel>
-                        <Typography variant="body2" fontWeight={500}>
-                          {label}
-                        </Typography>
-                      </StepLabel>
-                    </Step>
-                  ))}
-                </Stepper>
-              </Paper>
-            )}
+        ) : candidate ? (
+          <>
+            <Stepper activeStep={activeStep} sx={{ mb: 4, mt: 1 }}>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
 
-            {/* Mobile Section Indicator */}
-            {isMobile && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
-                <Chip
-                  label={`${activeSection + 1}/${sections.length} • ${sections[activeSection]}`}
-                  sx={{
-                    bgcolor: '#E3F2FD',
-                    color: '#1976D2',
-                    fontWeight: 500
-                  }}
-                />
-              </Box>
-            )}
-
-            {/* Section Content */}
-            {renderSectionContent(activeSection)}
-          </Stack>
-        )}
+            <Box sx={{ minHeight: 500 }}>
+              {getStepContent(activeStep)}
+            </Box>
+          </>
+        ) : null}
       </DialogContent>
 
-      <DialogActions sx={{ 
-        px: isMobile ? 2 : 3, 
-        py: 2, 
-        borderTop: '1px solid #E0E0E0', 
-        backgroundColor: '#F8FAFC',
-        position: 'sticky',
-        bottom: 0,
-        zIndex: 1,
-        flexDirection: isMobile ? 'column' : 'row',
-        gap: isMobile ? 1 : 0
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          width: '100%',
-          flexDirection: isMobile ? 'column-reverse' : 'row',
-          gap: isMobile ? 1 : 0
+      {candidate && !loading && !error && (
+        <DialogActions sx={{
+          px: 3,
+          py: 2,
+          borderTop: '1px solid #E0E0E0',
+          backgroundColor: '#F8FAFC'
         }}>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button onClick={handleClose}>
+            Close
+          </Button>
+
+          <Box sx={{ flex: 1 }} />
+
+          <Button
+            disabled={activeStep === 0}
+            onClick={handleBack}
+          >
+            Back
+          </Button>
+
+          {activeStep === steps.length - 1 ? (
             <Button
-              variant="outlined"
-              onClick={handlePrevSection}
-              disabled={activeSection === 0}
-              size={isMobile ? 'small' : 'medium'}
-              sx={{ 
-                borderRadius: 1.5, 
-                textTransform: 'none',
-                flex: isMobile ? 1 : 'none'
-              }}
+              variant="contained"
+              onClick={handleReset}
+              sx={{ mr: 1 }}
             >
-              Previous
+              View from Start
             </Button>
+          ) : (
             <Button
-              variant="outlined"
-              onClick={handleNextSection}
-              disabled={activeSection === sections.length - 1}
-              size={isMobile ? 'small' : 'medium'}
-              sx={{ 
-                borderRadius: 1.5, 
-                textTransform: 'none',
-                flex: isMobile ? 1 : 'none'
-              }}
+              variant="contained"
+              onClick={handleNext}
             >
               Next
             </Button>
-          </Box>
-          
-          <Button 
-            onClick={onClose} 
-            variant="contained"
-            size={isMobile ? 'small' : 'medium'}
-            sx={{
-              borderRadius: 1.5,
-              px: isMobile ? 2 : 4,
-              textTransform: 'none',
-              fontWeight: 500,
-              background: 'linear-gradient(135deg, #164e63, #00B4D8)',
-              '&:hover': { opacity: 0.9 },
-              width: isMobile ? '100%' : 'auto'
-            }}
-          >
-            Close
-          </Button>
-        </Box>
-      </DialogActions>
+          )}
+        </DialogActions>
+      )}
     </Dialog>
   );
 };

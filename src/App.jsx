@@ -40,6 +40,7 @@ import InterviewMaster from './pages/hrmaster/interviewmaster/InterviewMaster'
 import SalaryMaster from './pages/hrmaster/salarymaster/SalaryMaster'
 import PieceRateMaster from './pages/hrmaster/pieceratemaster/PieceRateMaster'
 import RegularizationMaster from './pages/hrmaster/regularizationmaster/RegularizationMaster'
+import SelectedCandidatesMaster from './pages/hrmaster/selectedcandidatemsater/SelectedCandidatesMaster'
 
 
 const PrivateRoute = ({ children }) => {
@@ -101,6 +102,7 @@ const App = () => {
 
           <Route path='hrmaster/employeeleavemaster' element={<EmployeeLeaveMaster/>} />
           <Route path='hrmaster/adminleavemaster' element={<AdminLeaveApproval/>} />
+          <Route path='/hrmaster/selectedcandidatesmaster' element={<SelectedCandidatesMaster/>} />
 
         </Route>
 

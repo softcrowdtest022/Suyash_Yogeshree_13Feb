@@ -8,8 +8,8 @@ import {
   Stack,
   MenuItem,
   CircularProgress,
-  Alert,
-  Snackbar
+  Snackbar,
+  Alert
 } from "@mui/material";
 import axios from "axios";
 import BASE_URL from "../../../config/Config";
@@ -17,7 +17,13 @@ import BASE_URL from "../../../config/Config";
 const HEADER_GRADIENT =
   "linear-gradient(135deg, #164e63 0%, #00B4D8 50%, #0e7490 100%)";
 
-const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails }) => {
+const ApplyLeave = ({
+  open,
+  handleClose,
+  onSuccess,
+  employeeId,
+  employeeDetails
+}) => {
   const token = localStorage.getItem("token");
 
   const [leaveTypes, setLeaveTypes] = useState([]);
@@ -42,7 +48,7 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
   useEffect(() => {
     if (open) {
       fetchLeaveTypes();
-      // Pre-fill contact number and address from employee details if available
+
       if (employeeDetails) {
         setForm(prev => ({
           ...prev,
@@ -55,46 +61,42 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
 
   const fetchLeaveTypes = async () => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/api/leavetypes`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      if (response.data.success) {
-        const allLeaveTypes = response.data.data || [];
-        // Only show active leave types
-        const activeLeaveTypes = allLeaveTypes.filter(
-          (type) => type.IsActive === true
-        );
-        setLeaveTypes(activeLeaveTypes);
-      }
-    } catch (err) {
-      console.error("Failed to load leave types", err);
-      setSnackbar({
-        open: true,
-        message: "Failed to load leave types",
-        severity: "error"
+      const res = await axios.get(`${BASE_URL}/api/leavetypes`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
+
+      if (res.data.success) {
+        const active = (res.data.data || []).filter(t => t.IsActive);
+        setLeaveTypes(active);
+      }
+    } catch {
+      showSnackbar("Failed to load leave types", "error");
     }
   };
 
   /* ================= VALIDATION ================= */
   const validate = () => {
     let temp = {};
-    
+
     if (!form.leaveTypeId) temp.leaveTypeId = "Required";
     if (!form.fromDate) temp.fromDate = "Required";
     if (!form.toDate) temp.toDate = "Required";
-    if (form.fromDate && form.toDate && form.fromDate > form.toDate)
+    if (form.fromDate && form.toDate && form.startDate > form.toDate) {
       temp.toDate = "To Date must be after From Date";
+    }
     if (!form.reason) temp.reason = "Required";
 
     setErrors(temp);
     return Object.keys(temp).length === 0;
+  };
+
+  /* ================= SNACKBAR ================= */
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
   /* ================= SUBMIT ================= */
@@ -103,34 +105,28 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
 
     try {
       setLoading(true);
-      
-      const requestData = {
+
+      const payload = {
+        employeeId,
         leaveTypeId: form.leaveTypeId,
         startDate: form.fromDate,
         endDate: form.toDate,
-        reason: form.reason,
-        employeeId: employeeId, // Use the employeeId prop
-        contactNumber: form.contactNumber || employeeDetails?.PhoneNumber || "9876543210",
-        addressDuringLeave: form.addressDuringLeave || employeeDetails?.Address || "Not specified"
+        reason: form.reason.trim(),
+        contactNumber:
+          form.contactNumber || employeeDetails?.PhoneNumber || "",
+        addressDuringLeave:
+          form.addressDuringLeave || employeeDetails?.Address || ""
       };
 
-      console.log("Submitting Data:", requestData);
-
-      const response = await axios.post(
+      const res = await axios.post(
         `${BASE_URL}/api/leaves`,
-        requestData,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Full response:", response.data);
+      if (res.data?.success) {
+        showSnackbar("Leave application submitted successfully");
 
-      // Check if request was successful
-      if (response.data && response.data.success) {
-        console.log("✅ Leave application successful!");
-        
-        // Reset form
         setForm({
           leaveTypeId: "",
           fromDate: "",
@@ -139,82 +135,37 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
           contactNumber: employeeDetails?.PhoneNumber || "",
           addressDuringLeave: employeeDetails?.Address || ""
         });
-        
-        // Show success message
-        setSnackbar({
-          open: true,
-          message: "Leave application submitted successfully!",
-          severity: "success"
-        });
-        
-        // Call onSuccess if it's a function with a slight delay to show success message
-        if (onSuccess && typeof onSuccess === 'function') {
-          // Pass true to indicate success
-          setTimeout(() => {
-            onSuccess(true);
-          }, 1000);
-        } else {
-          // If onSuccess is not provided, just close after delay
-          setTimeout(() => {
-            handleClose();
-          }, 1000);
-        }
+
+        setTimeout(() => {
+          if (onSuccess) onSuccess(true);
+          handleClose();
+        }, 800);
       } else {
-        throw new Error(response.data?.message || "Failed to apply leave");
+        throw new Error(res.data?.message);
       }
-      
     } catch (err) {
-      console.error("❌ Error details:", err);
-      
-      let errorMessage = "Failed to apply leave";
-      
-      if (err.response) {
-        errorMessage = err.response.data?.message || `Server error: ${err.response.status}`;
-      } else if (err.request) {
-        errorMessage = "Network error. Please check your connection.";
-      } else {
-        errorMessage = err.message || errorMessage;
-      }
-      
-      setSnackbar({
-        open: true,
-        message: errorMessage,
-        severity: "error"
-      });
-      
+      const message =
+        err.response?.data?.message ||
+        "Failed to apply leave. Please check data.";
+
+      showSnackbar(message, "error");
+    } finally {
       setLoading(false);
     }
   };
 
   /* ================= HANDLE CLOSE ================= */
   const handleDialogClose = () => {
-    // Reset form when dialog closes
-    setForm({
-      leaveTypeId: "",
-      fromDate: "",
-      toDate: "",
-      reason: "",
-      contactNumber: employeeDetails?.PhoneNumber || "",
-      addressDuringLeave: employeeDetails?.Address || ""
-    });
     setErrors({});
     handleClose();
   };
 
-  /* ================= HANDLE SNACKBAR CLOSE ================= */
-  const handleSnackbarClose = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
+  /* ================= DATE SELECTION ================= */
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <>
-      <Dialog 
-        open={open} 
-        onClose={handleDialogClose} 
-        fullWidth 
-        maxWidth="sm" 
-        disableEnforceFocus
-      >
+      <Dialog open={open} onClose={handleDialogClose} fullWidth maxWidth="sm">
         <DialogTitle
           sx={{
             background: HEADER_GRADIENT,
@@ -222,18 +173,20 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
             fontWeight: 600
           }}
         >
-          Apply Leave {employeeDetails && `- ${employeeDetails.FirstName} ${employeeDetails.LastName}`}
+          Apply Leave{" "}
+          {employeeDetails &&
+            `- ${employeeDetails.FirstName} ${employeeDetails.LastName}`}
         </DialogTitle>
 
         <DialogContent sx={{ p: 3 }}>
           <Stack spacing={3} mt={1}>
 
-            {/* LEAVE TYPE DROPDOWN */}
+            {/* LEAVE TYPE */}
             <TextField
               select
               label="Leave Type"
               value={form.leaveTypeId}
-              onChange={(e) =>
+              onChange={e =>
                 setForm({ ...form, leaveTypeId: e.target.value })
               }
               error={!!errors.leaveTypeId}
@@ -241,16 +194,11 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
               fullWidth
               size="small"
               disabled={loading}
-              SelectProps={{
-                MenuProps: {
-                  keepMounted: true,
-                },
-              }}
             >
-              {leaveTypes.length > 0 ? (
-                leaveTypes.map((type) => (
+              {leaveTypes.length ? (
+                leaveTypes.map(type => (
                   <MenuItem key={type._id} value={type._id}>
-                    {type.Name} {type.MaxDaysPerYear ? `(Max: ${type.MaxDaysPerYear} days)` : ''}
+                    {type.Name}
                   </MenuItem>
                 ))
               ) : (
@@ -258,22 +206,22 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
               )}
             </TextField>
 
-            {/* DATE FIELDS */}
+            {/* DATES */}
             <Stack direction="row" spacing={2}>
               <TextField
                 type="date"
                 label="From Date"
                 InputLabelProps={{ shrink: true }}
                 value={form.fromDate}
-                onChange={(e) =>
-                  setForm({ ...form, fromDate: e.target.value })
+                onChange={e =>
+                  setForm({ ...form, fromDate: e.target.value, toDate: "" })
                 }
                 error={!!errors.fromDate}
                 helperText={errors.fromDate}
                 fullWidth
                 disabled={loading}
                 inputProps={{
-                  min: new Date().toISOString().split('T')[0]
+                  min: today   //prenets past date selection
                 }}
               />
 
@@ -282,7 +230,7 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
                 label="To Date"
                 InputLabelProps={{ shrink: true }}
                 value={form.toDate}
-                onChange={(e) =>
+                onChange={e =>
                   setForm({ ...form, toDate: e.target.value })
                 }
                 error={!!errors.toDate}
@@ -290,7 +238,7 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
                 fullWidth
                 disabled={loading}
                 inputProps={{
-                  min: form.fromDate || new Date().toISOString().split('T')[0]
+                  min: form.fromDate || today   //  prevents past & before From Date
                 }}
               />
             </Stack>
@@ -299,9 +247,9 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
             <TextField
               label="Reason"
               multiline
-              rows={4}
+              rows={2}
               value={form.reason}
-              onChange={(e) =>
+              onChange={e =>
                 setForm({ ...form, reason: e.target.value })
               }
               error={!!errors.reason}
@@ -310,29 +258,30 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
               disabled={loading}
             />
 
-            {/* CONTACT NUMBER */}
+            {/* CONTACT */}
             <TextField
               label="Contact Number"
               value={form.contactNumber}
-              onChange={(e) =>
+              onChange={e =>
                 setForm({ ...form, contactNumber: e.target.value })
               }
               fullWidth
               size="small"
-              placeholder="Optional"
               disabled={loading}
             />
 
-            {/* ADDRESS DURING LEAVE */}
+            {/* ADDRESS */}
             <TextField
               label="Address During Leave"
               value={form.addressDuringLeave}
-              onChange={(e) =>
-                setForm({ ...form, addressDuringLeave: e.target.value })
+              onChange={e =>
+                setForm({
+                  ...form,
+                  addressDuringLeave: e.target.value
+                })
               }
               fullWidth
               size="small"
-              placeholder="Optional"
               disabled={loading}
             />
 
@@ -352,11 +301,7 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
                 disabled={loading || leaveTypes.length === 0}
                 sx={{
                   background: HEADER_GRADIENT,
-                  fontWeight: 600,
-                  '&:hover': {
-                    background: HEADER_GRADIENT,
-                    opacity: 0.9
-                  }
+                  "&:hover": { opacity: 0.9 }
                 }}
               >
                 {loading ? (
@@ -370,18 +315,14 @@ const ApplyLeave = ({ open, handleClose, onSuccess, employeeId, employeeDetails 
         </DialogContent>
       </Dialog>
 
-      {/* SNACKBAR FOR NOTIFICATIONS */}
+      {/* SNACKBAR */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleSnackbarClose} 
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
+        <Alert severity={snackbar.severity} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -139,7 +139,7 @@ const ActionMenu = ({
           </ListItemText>
         </MenuItem>
         
-        {job?.status === 'draft' && (
+        {job?.status === 'open' && (
           <MenuItem 
             onClick={() => {
               onPublish(job);
@@ -435,7 +435,7 @@ const JobOpeningMaster = () => {
     switch(status?.toLowerCase()) {
       case 'published':
         return 'success';
-      case 'draft':
+      case 'open':
         return 'default';
       case 'closed':
         return 'error';
@@ -564,7 +564,7 @@ const JobOpeningMaster = () => {
               }}
               disabled={loading}
             />
-            <Button
+            {/* <Button
               variant="outlined"
               startIcon={<FilterIcon />}
               sx={{ 
@@ -603,7 +603,7 @@ const JobOpeningMaster = () => {
               disabled={loading}
             >
               Sort
-            </Button>
+            </Button> */}
           </Stack>
 
           {/* Action Buttons */}
@@ -626,7 +626,7 @@ const JobOpeningMaster = () => {
                 Delete ({selected.length})
               </Button>
             )}
-            <Button
+            {/* <Button
               variant="outlined"
               startIcon={<DownloadIcon />}
               sx={{ 
@@ -645,7 +645,7 @@ const JobOpeningMaster = () => {
               disabled={loading}
             >
               Export
-            </Button>
+            </Button> */}
             <Button
               variant="contained"
               startIcon={<AddIcon />}
@@ -906,7 +906,7 @@ const JobOpeningMaster = () => {
                       <TableCell>
                         <Stack spacing={0.5}>
                           <Chip
-                            label={job.status?.toUpperCase() || 'DRAFT'}
+                            label={job.status?.toUpperCase()}
                             size="small"
                             color={getStatusColor(job.status)}
                             sx={{ 
@@ -1049,7 +1049,7 @@ const JobOpeningMaster = () => {
               setSelectedJob(null);
             }}
             jobId={selectedJob._id}
-            onClose={handleCloseJob}  // FIXED: Changed from onClosed to onClose
+            onMenuClose={handleCloseJob}  
           />
 
           <DeleteJobOpening 

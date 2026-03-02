@@ -1,3 +1,4 @@
+// LeaveTypeMaster.jsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -73,6 +74,7 @@ const LeaveTypeMaster = () => {
   const [openView, setOpenView] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
 
+  /* ✅ SNACKBAR STATE (same pattern as SalaryMaster) */
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -110,6 +112,7 @@ const LeaveTypeMaster = () => {
     }
   };
 
+  /* ✅ Snackbar helper */
   const showNotification = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
@@ -135,12 +138,10 @@ const LeaveTypeMaster = () => {
       const field = mode === "leave" ? "Name" : "Title";
       const aValue = field === "Title" ? (a.Title || a.Name || "") : (a[field] || "");
       const bValue = field === "Title" ? (b.Title || b.Name || "") : (b[field] || "");
-      
-      if (sortOrder === "asc") {
-        return aValue.localeCompare(bValue);
-      } else {
-        return bValue.localeCompare(aValue);
-      }
+
+      return sortOrder === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
     });
 
     setFilteredList(sorted);
@@ -215,16 +216,43 @@ const LeaveTypeMaster = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
       {/* TOGGLE */}
       <ToggleButtonGroup
         value={mode}
         exclusive
         onChange={(e, val) => val && setMode(val)}
-        sx={{ mb: 3 }}
+        sx={{ mb: 1 }}
       >
-        <ToggleButton value="leave">Leave Types</ToggleButton>
-        <ToggleButton value="holiday">Holidays</ToggleButton>
+        <ToggleButton
+          value="leave"
+          sx={{
+            "&.Mui-selected": {
+              background: HEADER_GRADIENT,
+              color: "#fff",
+            },
+            "&.Mui-selected:hover": {
+              background: HEADER_GRADIENT,
+            },
+          }}
+        >
+          Leave Types
+        </ToggleButton>
+
+        <ToggleButton
+          value="holiday"
+          sx={{
+            "&.Mui-selected": {
+              background: HEADER_GRADIENT,
+              color: "#fff",
+            },
+            "&.Mui-selected:hover": {
+              background: HEADER_GRADIENT,
+            },
+          }}
+        >
+          Holidays
+        </ToggleButton>
       </ToggleButtonGroup>
 
       <Typography
@@ -234,14 +262,17 @@ const LeaveTypeMaster = () => {
           background: HEADER_GRADIENT,
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
-          mb: 3
+          mb: 1
         }}
       >
         {mode === "leave" ? "Leave Type Master" : "Holiday Master"}
       </Typography>
+      <Typography variant="body2" color="#64748B">
+                Manage leave types and holiday schedules
+      </Typography>
 
       {/* ACTION BAR */}
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <Paper sx={{ p: 1.5, mb: 3 }}>
         <Stack direction="row" spacing={2} justifyContent="space-between" flexWrap="wrap">
           <Stack direction="row" spacing={2} flexWrap="wrap">
             <TextField
@@ -259,36 +290,33 @@ const LeaveTypeMaster = () => {
               sx={{ width: 300 }}
             />
 
-            <Button
+            {/* <Button
               variant="outlined"
               startIcon={<FilterIcon />}
               onClick={handleFilterActive}
             >
               Active Only
-            </Button>
+            </Button> */}
 
-            <Button
+            {/* <Button
               variant="outlined"
               startIcon={<SortIcon />}
               onClick={handleSort}
             >
               Sort {sortOrder === "asc" ? "A-Z" : "Z-A"}
-            </Button>
+            </Button> */}
 
             {(searchTerm || filteredList.length !== dataList.length) && (
-              <Button
-                variant="text"
-                onClick={handleResetFilter}
-              >
+              <Button variant="text" onClick={handleResetFilter}>
                 Clear Filters
               </Button>
             )}
           </Stack>
 
           <Stack direction="row" spacing={2}>
-            <Button variant="outlined" startIcon={<DownloadIcon />}>
+            {/* <Button variant="outlined" startIcon={<DownloadIcon />}>
               Export
-            </Button>
+            </Button> */}
 
             <Button
               variant="contained"
@@ -314,7 +342,9 @@ const LeaveTypeMaster = () => {
                 <TableCell sx={{ color: "white" }}>
                   {mode === "leave" ? "Max Days" : "Date"}
                 </TableCell>
-                <TableCell sx={{ color: "white" }}>Status</TableCell>
+                <TableCell sx={{ color: "white" }}>Created At</TableCell>
+                <TableCell sx={{ color: "white" }}>Updated At</TableCell>
+                {/* <TableCell sx={{ color: "white" }}>Status</TableCell> */}
                 <TableCell sx={{ color: "white" }} align="center">
                   Actions
                 </TableCell>
@@ -335,22 +365,32 @@ const LeaveTypeMaster = () => {
                       {mode === "leave"
                         ? item.MaxDaysPerYear
                         : item.Date
-                        ? new Date(item.Date).toLocaleDateString()
+                          ? new Date(item.Date).toLocaleDateString()
+                          : "-"}
+                    </TableCell>
+
+                    <TableCell>
+                      {item.CreatedAt
+                        ? new Date(item.CreatedAt).toLocaleDateString()
                         : "-"}
                     </TableCell>
 
                     <TableCell>
+                      {item.UpdatedAt
+                        ? new Date(item.UpdatedAt).toLocaleDateString()
+                        : "-"}
+                    </TableCell>
+
+                    {/* <TableCell>
                       <Chip
                         label={item.IsActive ? "Active" : "Inactive"}
                         color={item.IsActive ? "success" : "default"}
                         size="small"
                       />
-                    </TableCell>
+                    </TableCell> */}
 
                     <TableCell align="center">
-                      <IconButton
-                        onClick={(e) => handleActionOpen(e, item)}
-                      >
+                      <IconButton onClick={(e) => handleActionOpen(e, item)}>
                         <MoreVertIcon />
                       </IconButton>
                     </TableCell>
@@ -380,43 +420,22 @@ const LeaveTypeMaster = () => {
       </Paper>
 
       {/* ACTION MENU */}
-      <Menu
-        anchorEl={actionAnchor}
-        open={Boolean(actionAnchor)}
-        onClose={handleActionClose}
-      >
-        <MenuItem
-          onClick={() => {
-            setOpenView(true);
-            handleActionClose();
-          }}
-        >
+      <Menu anchorEl={actionAnchor} open={Boolean(actionAnchor)} onClose={handleActionClose}>
+        <MenuItem onClick={() => { setOpenView(true); handleActionClose(); }}>
           <ListItemIcon><ViewIcon fontSize="small" /></ListItemIcon>
           <ListItemText>View</ListItemText>
         </MenuItem>
 
-        <MenuItem
-          onClick={() => {
-            setOpenEdit(true);
-            handleActionClose();
-          }}
-        >
+        <MenuItem onClick={() => { setOpenEdit(true); handleActionClose(); }}>
           <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Edit</ListItemText>
         </MenuItem>
 
         <Divider />
 
-        <MenuItem
-          onClick={() => {
-            setOpenDelete(true);
-            handleActionClose();
-          }}
-        >
+        <MenuItem onClick={() => { setOpenDelete(true); handleActionClose(); }}>
           <ListItemIcon><DeleteIcon fontSize="small" /></ListItemIcon>
-          <ListItemText sx={{ color: "error.main" }}>
-            Delete
-          </ListItemText>
+          <ListItemText sx={{ color: "error.main" }}>Delete</ListItemText>
         </MenuItem>
       </Menu>
 
@@ -439,14 +458,14 @@ const LeaveTypeMaster = () => {
         </>
       )}
 
-      {/* SNACKBAR */}
+      {/*  SNACKBAR (Same as SalaryMaster) */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert severity={snackbar.severity} variant="filled" sx={{ width: '100%' }}>
+        <Alert severity={snackbar.severity} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>

@@ -152,7 +152,7 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
             error={!!error && error.includes('Holiday name')}
             helperText={error && error.includes('Holiday name') ? error : ''}
           />
-
+<Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <TextField
             fullWidth
             label="Date"
@@ -194,7 +194,7 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
             onChange={handleChange}
             disabled={loading}
           />
-
+</Stack>
           <TextField
             fullWidth
             label="Description"
@@ -202,7 +202,7 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
             value={formData.Description}
             onChange={handleChange}
             multiline
-            rows={3}
+            rows={2}
             disabled={loading}
           />
 
@@ -218,7 +218,7 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
             label="Recurring Every Year"
           />
 
-          <FormControlLabel
+          {/* <FormControlLabel
             control={
               <Switch
                 checked={formData.IsActive}
@@ -228,7 +228,7 @@ const EditHoliday = ({ open, onClose, holiday, onUpdate }) => {
               />
             }
             label="Active"
-          />
+          /> */}
 
           {error && !error.includes('Holiday name') && !error.includes('date') && !error.includes('type') && (
             <Alert severity="error">{error}</Alert>

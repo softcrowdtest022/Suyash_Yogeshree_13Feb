@@ -58,6 +58,7 @@ const HeaderTwo = () => {
     { name: 'Regularization Master', path: '/hrmaster/regularizationmaster', icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' }, // Refresh/Regularization icon
     { name: 'Employee Leave Master', path: '/hrmaster/employeeleavemaster', icon: 'M16 4v1h4v16H4V5h4V4a2 2 0 014 0M8 8h8M8 12h6m-6 4h4' }, // Employee Calendar icon
     { name: 'Admin Leave Master', path: '/hrmaster/adminleavemaster', icon: 'M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z M8 14h8' }, // Admin/Shield with calendar icon
+    { name: 'Selected Candidates Management', path: '/hrmaster/selectedcandidatesmaster',  icon: ''}
   ];
 
   // Leave Management items with unique icons

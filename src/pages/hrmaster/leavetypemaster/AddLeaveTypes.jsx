@@ -108,7 +108,7 @@ const AddLeaveTypes = ({ open, onClose, onAdd }) => {
       Name: '',
       MaxDaysPerYear: '',
       Description: '',
-      IsActive: true
+      // IsActive: true
     });
     setError('');
   };
@@ -210,7 +210,7 @@ const AddLeaveTypes = ({ open, onClose, onAdd }) => {
             }}
           />
           
-          <FormControlLabel
+          {/* <FormControlLabel
             control={
               <Switch
                 checked={formData.IsActive}
@@ -222,7 +222,7 @@ const AddLeaveTypes = ({ open, onClose, onAdd }) => {
             }
             label="Active"
             sx={{ mt: 1 }}
-          />
+          /> */}
           
           {error && !error.includes('Leave type name') && !error.includes('name must be') && !error.includes('Maximum days') && (
             <Alert 

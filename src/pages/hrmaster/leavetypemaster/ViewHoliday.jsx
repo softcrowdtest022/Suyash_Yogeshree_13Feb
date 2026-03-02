@@ -17,7 +17,8 @@ import {
   Info,
   CheckCircle,
   Cancel,
-  Repeat
+  Repeat,
+  CloseSharp
 } from '@mui/icons-material';
 
 const ViewHoliday = ({ open, onClose, holiday, onEdit }) => {
@@ -71,14 +72,14 @@ const ViewHoliday = ({ open, onClose, holiday, onEdit }) => {
               <Stack spacing={1} flex={1}>
                 <Stack direction="row" spacing={1} alignItems="center">
                   <CalendarToday fontSize="small" />
-                  <Box>
+                  <Stack>
                     <Typography variant="caption" color="text.secondary">
                       Date
                     </Typography>
                     <Typography variant="body1">
                       {formatDate(holiday.Date)}
                     </Typography>
-                  </Box>
+                 </Stack>
                 </Stack>
               </Stack>
 
@@ -97,30 +98,34 @@ const ViewHoliday = ({ open, onClose, holiday, onEdit }) => {
             </Stack>
 
             {/* Year */}
-            <Stack spacing={1}>
-              <Typography variant="caption" color="text.secondary">
-                Year
-              </Typography>
-              <Typography variant="body1">
-                {holiday.Year || 'N/A'}
-              </Typography>
-            </Stack>
+            <Stack spacing={2}>
+              <Stack direction="row" spacing={24}>
+              <Stack direction="row" spacing={3}>
+                <Typography variant="caption" color="text.secondary" marginLeft="10px">
+                  Year
+                </Typography>
+                <Typography variant="body1">
+                  {holiday.Year || 'N/A'}
+                </Typography>
+              </Stack>
 
-            {/* Recurring */}
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Repeat fontSize="small" />
-              <Typography variant="caption" color="text.secondary">
-                Recurring
-              </Typography>
-              <Chip
-                label={holiday.IsRecurring ? 'Yes' : 'No'}
-                size="small"
-                color={holiday.IsRecurring ? 'success' : 'default'}
-              />
+              {/* Recurring */}
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Repeat fontSize="small" />
+                <Typography variant="caption" color="text.secondary">
+                  Recurring
+                </Typography>
+                <Chip
+                  label={holiday.IsRecurring ? 'Yes' : 'No'}
+                  size="small"
+                  color={holiday.IsRecurring ? 'success' : 'default'}
+                />
+              </Stack>
+              </Stack>
             </Stack>
 
             {/* Status */}
-            <Stack direction="row" spacing={1} alignItems="center">
+            {/* <Stack direction="row" spacing={1} alignItems="center">
               {holiday.IsActive ? (
                 <CheckCircle color="success" fontSize="small" />
               ) : (
@@ -134,7 +139,7 @@ const ViewHoliday = ({ open, onClose, holiday, onEdit }) => {
                 size="small"
                 color={holiday.IsActive ? 'success' : 'default'}
               />
-            </Stack>
+            </Stack> */}
 
             {/* Description */}
             <Stack spacing={1}>
@@ -148,9 +153,9 @@ const ViewHoliday = ({ open, onClose, holiday, onEdit }) => {
                     variant="body2"
                     sx={{
                       backgroundColor: '#F8FAFC',
-                      p: 2,
+                      p: 1,
                       borderRadius: 1,
-                      mt: 0.5
+                      // mt: 0.5
                     }}
                   >
                     {holiday.Description || 'No description provided'}
@@ -163,25 +168,31 @@ const ViewHoliday = ({ open, onClose, holiday, onEdit }) => {
           <Divider />
 
           {/* System Info */}
-          <Stack spacing={1}>
+          <Stack spacing={1}  >
             <Typography variant="subtitle2" fontWeight={600}>
               System Information
             </Typography>
 
+<Stack direction="row" spacing={20}>
+  <Stack>
             <Typography variant="caption" color="text.secondary">
               Created At
             </Typography>
             <Typography variant="body2">
               {formatDateTime(holiday.CreatedAt || holiday.createdAt)}
             </Typography>
+            </Stack>
 
-            <Typography variant="caption" color="text.secondary" mt={1}>
+<Stack>
+            <Typography variant="caption" color="text.secondary" >
               Last Updated
             </Typography>
             <Typography variant="body2">
               {formatDateTime(holiday.UpdatedAt || holiday.updatedAt)}
             </Typography>
           </Stack>
+          </Stack>
+        </Stack>
         </Stack>
       </DialogContent>
 
@@ -193,18 +204,26 @@ const ViewHoliday = ({ open, onClose, holiday, onEdit }) => {
           backgroundColor: '#F8FAFC'
         }}
       >
-        <Button onClick={onClose}>Close</Button>
-
-        <Button
+         <Button 
           variant="contained"
-          onClick={() => {
-            onClose();
-            onEdit();
+          onClick={onClose}
+          startIcon={<CloseSharp />}
+          sx={{
+            borderRadius: 1,
+            px: 3,
+            py: 1,
+            textTransform: 'none',
+            fontWeight: 500,
+            backgroundColor: '#1976D2',
+            '&:hover': {
+              backgroundColor: '#1565C0'
+            }
           }}
-          startIcon={<EditIcon />}
         >
-          Edit Holiday
+          Close
         </Button>
+
+        
       </DialogActions>
     </Dialog>
   );

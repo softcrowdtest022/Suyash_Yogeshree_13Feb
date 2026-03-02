@@ -66,7 +66,10 @@ import {
   Description as ResumeIcon,
   Clear as ClearIcon,
   Work as WorkIcon,
-  School as SchoolIcon
+  School as SchoolIcon,
+  LinkedIn as LinkedInIcon,
+  Language as LanguageIcon,
+  People as PeopleIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import BASE_URL from '../../../config/Config';
@@ -78,6 +81,7 @@ import ViewCandidate from './ViewCandidate';
 import ShortlistCandidate from './ShortlistCandidate';
 import UpdateCandidateStatus from './UpdateCandidateStatus';
 import AddNotes from './AddNotes';
+import EditCandidate from './EditCandidate';
 
 // Color constants
 const HEADER_GRADIENT = 'linear-gradient(135deg, #164e63 0%, #00B4D8 50%, #0e7490 100%)';
@@ -88,32 +92,43 @@ const PRIMARY_BLUE = '#00B4D8';
 const TEXT_COLOR_HEADER = '#FFFFFF';
 const TEXT_COLOR_MAIN = '#0f172a';
 
-// Status color mapping
+// Status color mapping - Updated to match backend enum
 const STATUS_COLORS = {
   new: { bg: '#E3F2FD', color: '#1976D2', icon: <PersonIcon sx={{ fontSize: 14 }} />, label: 'New' },
-  screening: { bg: '#F3E5F5', color: '#7B1FA2', icon: <PendingIcon sx={{ fontSize: 14 }} />, label: 'Screening' },
+  contacted: { bg: '#F3E5F5', color: '#7B1FA2', icon: <PersonIcon sx={{ fontSize: 14 }} />, label: 'Contacted' },
   shortlisted: { bg: '#E8F5E8', color: '#2E7D32', icon: <StarIcon sx={{ fontSize: 14 }} />, label: 'Shortlisted' },
-  interview_scheduled: { bg: '#FFF3E0', color: '#F57C00', icon: <CalendarIcon sx={{ fontSize: 14 }} />, label: 'Interview Scheduled' },
   interviewed: { bg: '#E1F5FE', color: '#0288D1', icon: <PersonIcon sx={{ fontSize: 14 }} />, label: 'Interviewed' },
   selected: { bg: '#E8F5E8', color: '#2E7D32', icon: <CheckCircleIcon sx={{ fontSize: 14 }} />, label: 'Selected' },
-  offered: { bg: '#F1F8E9', color: '#558B2F', icon: <WorkIcon sx={{ fontSize: 14 }} />, label: 'Offered' },
-  accepted: { bg: '#E8F5E8', color: '#1B5E20', icon: <CheckCircleIcon sx={{ fontSize: 14 }} />, label: 'Accepted' },
   rejected: { bg: '#FFEBEE', color: '#C62828', icon: <ErrorIcon sx={{ fontSize: 14 }} />, label: 'Rejected' },
-  on_hold: { bg: '#FFF8E1', color: '#FF8F00', icon: <PendingIcon sx={{ fontSize: 14 }} />, label: 'On Hold' },
-  withdrawn: { bg: '#EEEEEE', color: '#616161', icon: <ErrorIcon sx={{ fontSize: 14 }} />, label: 'Withdrawn' }
+  onHold: { bg: '#FFF8E1', color: '#FF8F00', icon: <PendingIcon sx={{ fontSize: 14 }} />, label: 'On Hold' },
+  joined: { bg: '#E8F5E8', color: '#1B5E20', icon: <CheckCircleIcon sx={{ fontSize: 14 }} />, label: 'Joined' }
 };
 
-// Source options
-const SOURCE_OPTIONS = ['walkin', 'portal', 'referral', 'consultant', 'upload', 'other'];
+// Source options - Updated to match backend enum
+const SOURCE_OPTIONS = ['naukri', 'linkedin', 'indeed', 'walkin', 'reference', 'careerPage', 'other'];
+
+// Source icon mapping
+const SOURCE_ICONS = {
+  'naukri': { icon: <LanguageIcon />, color: '#FF5722', label: 'Naukri' },
+  'linkedin': { icon: <LinkedInIcon />, color: '#0077B5', label: 'LinkedIn' },
+  'indeed': { icon: <WorkIcon />, color: '#003A9B', label: 'Indeed' },
+  'walkin': { icon: <PersonIcon />, color: '#4CAF50', label: 'Walk-in' },
+  'reference': { icon: <PeopleIcon />, color: '#9C27B0', label: 'Reference' },
+  'careerPage': { icon: <BusinessIcon />, color: '#FF9800', label: 'Career Page' },
+  'upload': { icon: <CloudUploadIcon />, color: '#00BCD4', label: 'Upload' },
+  'other': { icon: <PersonIcon />, color: '#9E9E9E', label: 'Other' }
+};
 
 // Action Menu Component
 const ActionMenu = ({
   candidate,
   onView,
+  onEdit,
   onShortlist,
   onUpdateStatus,
   onAddNote,
   onViewResume,
+  onUploadResume,
   anchorEl,
   onClose,
   onOpen
@@ -144,7 +159,8 @@ const ActionMenu = ({
             mt: 1,
             minWidth: 200,
             borderRadius: 2,
-            border: '1px solid #e2e8f0'
+            border: '1px solid #e2e8f0',
+            maxHeight: 400
           }
         }}
       >
@@ -160,6 +176,37 @@ const ActionMenu = ({
           </ListItemIcon>
           <ListItemText>
             <Typography variant="body2" fontWeight={500}>View Details</Typography>
+          </ListItemText>
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            onEdit(candidate);
+            onClose();
+          }}
+          sx={{ py: 1 }}
+        >
+          <ListItemIcon sx={{ color: PRIMARY_BLUE, minWidth: 36 }}>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>
+            <Typography variant="body2" fontWeight={500}>Edit Details</Typography>
+          </ListItemText>
+        </MenuItem>
+
+        {/* Upload Resume Option - Always visible */}
+        <MenuItem
+          onClick={() => {
+            onUploadResume(candidate);
+            onClose();
+          }}
+          sx={{ py: 1 }}
+        >
+          <ListItemIcon sx={{ color: '#0288D1', minWidth: 36 }}>
+            <CloudUploadIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>
+            <Typography variant="body2" fontWeight={500}>Upload Resume</Typography>
           </ListItemText>
         </MenuItem>
 
@@ -263,7 +310,6 @@ const FilterBar = ({
 
   const handleClearAndClose = () => {
     onClearFilters();
-    // Don't close the filter panel, just clear the filters
   };
 
   return (
@@ -281,8 +327,8 @@ const FilterBar = ({
               }
             }}
           >
-            <Badge 
-              badgeContent={Object.values(filters).filter(v => v).length} 
+            <Badge
+              badgeContent={Object.values(filters).filter(v => v).length}
               color="primary"
               sx={{
                 '& .MuiBadge-badge': {
@@ -345,7 +391,13 @@ const FilterBar = ({
                   <MenuItem value="">All</MenuItem>
                   {sources.map(source => (
                     <MenuItem key={source} value={source}>
-                      {source.charAt(0).toUpperCase() + source.slice(1)}
+                      {source === 'naukri' ? 'Naukri' :
+                        source === 'linkedin' ? 'LinkedIn' :
+                          source === 'indeed' ? 'Indeed' :
+                            source === 'walkin' ? 'Walk-in' :
+                              source === 'reference' ? 'Reference' :
+                                source === 'careerPage' ? 'Career Page' :
+                                  source === 'other' ? 'Other' : source}
                     </MenuItem>
                   ))}
                 </Select>
@@ -414,7 +466,10 @@ const CandidateMaster = () => {
     status: '',
     source: ''
   });
-  const [statuses] = useState(['new', 'screening', 'shortlisted', 'interview_scheduled', 'interviewed', 'selected', 'offered', 'accepted', 'rejected', 'on_hold', 'withdrawn']);
+
+  // Status options - Updated to match backend enum
+  const [statuses] = useState(['new', 'contacted', 'shortlisted', 'interviewed', 'selected', 'rejected', 'onHold', 'joined']);
+  // Source options - Updated to match backend enum
   const [sources] = useState(SOURCE_OPTIONS);
 
   // Menu state
@@ -425,6 +480,7 @@ const CandidateMaster = () => {
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openUploadModal, setOpenUploadModal] = useState(false);
   const [openViewModal, setOpenViewModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
   const [openShortlistModal, setOpenShortlistModal] = useState(false);
   const [openStatusModal, setOpenStatusModal] = useState(false);
   const [openAddNotesModal, setOpenAddNotesModal] = useState(false);
@@ -439,16 +495,17 @@ const CandidateMaster = () => {
     severity: 'success'
   });
 
-  // Fetch candidates with pagination and filters
+  // Fetch candidates function
   const fetchCandidates = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
 
-      // Build query params
+      // Build query params - add populate parameter to include job details
       const params = new URLSearchParams({
         page: page + 1,
         limit: rowsPerPage,
+        populate: 'jobId', // This tells the backend to populate job details
         ...(searchTerm && { search: searchTerm })
       });
 
@@ -462,6 +519,7 @@ const CandidateMaster = () => {
       });
 
       if (response.data.success) {
+        console.log('Candidate data with jobs:', response.data.data);
         setCandidates(response.data.data || []);
         setTotalItems(response.data.pagination?.totalItems || 0);
         setTotalPages(response.data.pagination?.totalPages || 1);
@@ -510,14 +568,13 @@ const CandidateMaster = () => {
     fetchCandidates();
   };
 
-  // Handle clear filters - FIXED: Now properly clears filters
+  // Handle clear filters
   const handleClearFilters = () => {
     setFilters({
       status: '',
       source: ''
     });
     setPage(0);
-    // Fetch with cleared filters
     setTimeout(() => {
       fetchCandidates();
     }, 100);
@@ -564,10 +621,33 @@ const CandidateMaster = () => {
     fetchCandidates();
   };
 
+  // Handle candidate update
+const handleCandidateUpdate = (updatedCandidate) => {
+  console.log('Candidate updated:', updatedCandidate);
+  
+  // Update the candidate in the list
+  setCandidates(prevCandidates =>
+    prevCandidates.map(c =>
+      c._id === updatedCandidate._id ? updatedCandidate : c
+    )
+  );
+
+  // Update the selected candidate if it's the same one
+  if (selectedCandidate?._id === updatedCandidate._id) {
+    setSelectedCandidate(updatedCandidate);
+  }
+
+  showNotification('Candidate updated successfully!', 'success');
+  setOpenEditModal(false);
+  setSelectedCandidate(null);
+  fetchCandidates(); // Refresh the list to be safe
+};
+
   // Handle upload resume
   const handleUploadResume = (data) => {
     showNotification('Resume uploaded successfully!', 'success');
     setOpenUploadModal(false);
+    setSelectedCandidate(null);
     fetchCandidates();
   };
 
@@ -590,7 +670,26 @@ const CandidateMaster = () => {
   // Handle add note
   const handleAddNote = (note) => {
     showNotification('Note added successfully!', 'success');
-    // Don't close modal automatically, let user close it
+    fetchCandidates(); // Refresh to show new note count
+  };
+
+  // Handle job update from ViewCandidate
+  const handleJobUpdate = (updatedCandidate) => {
+    console.log('Job updated for candidate:', updatedCandidate);
+
+    // Update the candidate in the list
+    setCandidates(prevCandidates =>
+      prevCandidates.map(c =>
+        c._id === updatedCandidate._id ? updatedCandidate : c
+      )
+    );
+
+    // Update the selected candidate if it's the same one
+    if (selectedCandidate?._id === updatedCandidate._id) {
+      setSelectedCandidate(updatedCandidate);
+    }
+
+    showNotification('Job assigned successfully!', 'success');
   };
 
   // Handle bulk delete (for future implementation)
@@ -617,6 +716,20 @@ const CandidateMaster = () => {
   const openViewCandidateModal = (candidate) => {
     setSelectedCandidate(candidate);
     setOpenViewModal(true);
+    handleActionMenuClose();
+  };
+
+  // Open edit modal
+  const openEditCandidateModal = (candidate) => {
+    setSelectedCandidate(candidate);
+    setOpenEditModal(true);
+    handleActionMenuClose();
+  };
+
+  // Open upload resume modal
+  const openUploadResumeModal = (candidate) => {
+    setSelectedCandidate(candidate);
+    setOpenUploadModal(true);
     handleActionMenuClose();
   };
 
@@ -671,16 +784,22 @@ const CandidateMaster = () => {
   // Get source icon
   const getSourceIcon = (source) => {
     switch (source?.toLowerCase()) {
+      case 'naukri':
+        return <LanguageIcon sx={{ fontSize: 14, color: '#FF5722' }} />;
+      case 'linkedin':
+        return <LinkedInIcon sx={{ fontSize: 14, color: '#0077B5' }} />;
+      case 'indeed':
+        return <WorkIcon sx={{ fontSize: 14, color: '#003A9B' }} />;
       case 'walkin':
-        return <PersonIcon sx={{ fontSize: 14, color: '#1976D2' }} />;
-      case 'portal':
-        return <WorkIcon sx={{ fontSize: 14, color: '#7B1FA2' }} />;
-      case 'referral':
-        return <SchoolIcon sx={{ fontSize: 14, color: '#2E7D32' }} />;
-      case 'consultant':
-        return <WorkIcon sx={{ fontSize: 14, color: '#F57C00' }} />;
+        return <PersonIcon sx={{ fontSize: 14, color: '#4CAF50' }} />;
+      case 'reference':
+        return <PeopleIcon sx={{ fontSize: 14, color: '#9C27B0' }} />;
+      case 'careerpage':
+        return <BusinessIcon sx={{ fontSize: 14, color: '#FF9800' }} />;
       case 'upload':
-        return <CloudUploadIcon sx={{ fontSize: 14, color: '#0288D1' }} />;
+        return <CloudUploadIcon sx={{ fontSize: 14, color: '#00BCD4' }} />;
+      case 'other':
+        return <PersonIcon sx={{ fontSize: 14, color: '#9E9E9E' }} />;
       default:
         return <PersonIcon sx={{ fontSize: 14, color: '#757575' }} />;
     }
@@ -823,28 +942,6 @@ const CandidateMaster = () => {
               disabled={loading}
             >
               Export
-            </Button>
-
-            <Button
-              variant="outlined"
-              startIcon={<CloudUploadIcon />}
-              onClick={() => setOpenUploadModal(true)}
-              sx={{
-                height: 40,
-                borderRadius: 1.5,
-                borderColor: '#cbd5e1',
-                color: '#475569',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                textTransform: 'none',
-                '&:hover': {
-                  borderColor: PRIMARY_BLUE,
-                  bgcolor: alpha(PRIMARY_BLUE, 0.04)
-                }
-              }}
-              disabled={loading}
-            >
-              Upload
             </Button>
 
             <Button
@@ -1030,7 +1127,7 @@ const CandidateMaster = () => {
                           </Avatar>
                           <Box>
                             <Typography variant="body2" fontWeight={600} color={TEXT_COLOR_MAIN}>
-                              {candidate.fullName}
+                              {candidate.firstName} {candidate.lastName}
                             </Typography>
                             {candidate.dateOfBirth && (
                               <Typography variant="caption" color="#64748B">
@@ -1120,7 +1217,14 @@ const CandidateMaster = () => {
                         <Stack direction="row" alignItems="center" spacing={0.5}>
                           {getSourceIcon(candidate.source)}
                           <Typography variant="caption" color="#64748B" sx={{ textTransform: 'capitalize' }}>
-                            {candidate.source || 'N/A'}
+                            {candidate.source === 'naukri' ? 'Naukri' :
+                              candidate.source === 'linkedin' ? 'LinkedIn' :
+                                candidate.source === 'indeed' ? 'Indeed' :
+                                  candidate.source === 'walkin' ? 'Walk-in' :
+                                    candidate.source === 'reference' ? 'Reference' :
+                                      candidate.source === 'careerPage' ? 'Career Page' :
+                                        candidate.source === 'upload' ? 'Upload' :
+                                          candidate.source === 'other' ? 'Other' : candidate.source || 'N/A'}
                           </Typography>
                         </Stack>
                       </TableCell>
@@ -1141,10 +1245,12 @@ const CandidateMaster = () => {
                         <ActionMenu
                           candidate={candidate}
                           onView={openViewCandidateModal}
+                          onEdit={openEditCandidateModal}
                           onShortlist={openShortlistCandidateModal}
                           onUpdateStatus={openStatusUpdateModal}
                           onAddNote={openAddNotesModalHandler}
                           onViewResume={handleViewResume}
+                          onUploadResume={openUploadResumeModal}
                           anchorEl={isActionMenuOpen ? actionMenuAnchor : null}
                           onClose={handleActionMenuClose}
                           onOpen={(e) => handleActionMenuOpen(e, candidate)}
@@ -1180,17 +1286,22 @@ const CandidateMaster = () => {
         />
       </Paper>
 
-      {/* Modal Components - These are the popups */}
+      {/* Modal Components */}
       <AddCandidate
         open={openAddModal}
         onClose={() => setOpenAddModal(false)}
         onAdd={handleAddCandidate}
       />
 
+      {/* Single ResumeUpload component - will receive candidateId when opened from action menu */}
       <ResumeUpload
         open={openUploadModal}
-        onClose={() => setOpenUploadModal(false)}
+        onClose={() => {
+          setOpenUploadModal(false);
+          setSelectedCandidate(null);
+        }}
         onUpload={handleUploadResume}
+        candidateId={selectedCandidate?.candidateId} // Pass candidate ID for update, undefined for new candidate
       />
 
       {selectedCandidate && (
@@ -1201,10 +1312,15 @@ const CandidateMaster = () => {
               setOpenViewModal(false);
               setSelectedCandidate(null);
             }}
-            candidateId={selectedCandidate._id}
+            candidateId={selectedCandidate?._id} // Pass the ID instead of the whole object
+          />
+          <EditCandidate
+            open={openEditModal}
+            onClose={() => setOpenEditModal(false)}
+            onUpdate={handleCandidateUpdate}
+            candidateId={selectedCandidate?._id}
             candidateData={selectedCandidate}
           />
-
           <ShortlistCandidate
             open={openShortlistModal}
             onClose={() => {
